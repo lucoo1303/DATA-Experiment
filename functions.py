@@ -20,18 +20,15 @@ m_spring = unc.ufloat(temp_var, temp_unc, 'mass on spring')
 u = unc.ufloat(temp_var, temp_unc, 'displacement')
 
 
-# derived (constant) quantities with their uncertainties and tags
+# derived (constant) quantities with their uncertainties
 I = m*l**2 + (M*L**2)/3
 k = unc.ufloat(m_spring.n*g.n/u.n, m_spring.s*g.s/u.s, 'spring constant')
 # Created a new ufloat for k, since I won't track the error propagation of m_spring and u in the final experiment, 
 # basically treating k as constant (with uncertainty) from here on out
 
-# theoretical angular frequencies with their uncertainties and tags
+# theoretical angular frequencies with their uncertainties
 w1_theory = unp.sqrt((m*l*g + M*L*g/2)/I)
-w1_theory.tag = 'w1 theory'
 w2_theory = unp.sqrt((m*l*g + M*L*g/2 + 2*k*l**2)/I)
-w2_theory.tag = 'w2 theory'
-
 
 # functions to calculate theoretical angles with uncertainties, based on time and initial conditions
 def theta1_theory(t, theta01, theta02, w1, w2):
