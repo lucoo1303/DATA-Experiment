@@ -39,3 +39,4 @@ def theta2_theory(t, theta01, theta02, w1, w2):
 
 
 print(f'{k.tag} = {k}')
+
