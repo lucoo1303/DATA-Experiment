@@ -35,11 +35,7 @@ w2_theory.tag = 'w2 theory'
 
 # functions to calculate theoretical angles with uncertainties, based on time and initial conditions
 def theta1_theory(t, theta01, theta02, w1, w2):
-    theta1 = (theta01 + theta02)/2 * unp.cos(w1*t) + (theta01 - theta02)/2 * unp.cos(w2*t)
-    theta1.tag = 'theta1 theory'
-    return theta1
+    return (theta01 + theta02)/2 * unp.cos(w1*t) + (theta01 - theta02)/2 * unp.cos(w2*t)
 
 def theta2_theory(t, theta01, theta02, w1, w2):
-    theta2 = (theta01 + theta02)/2 * unp.cos(w1*t) + (theta02 - theta01)/2 * unp.cos(w2*t)
-    theta2.tag = 'theta2 theory'
-    return theta2
+    return (theta01 + theta02)/2 * unp.cos(w1*t) + (theta02 - theta01)/2 * unp.cos(w2*t)
