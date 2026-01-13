@@ -40,3 +40,12 @@ def theta2_theory(t, theta01, theta02, w1, w2):
 
 print(f'{k.tag} = {k}')
 
+loc = os.path.dirname(__file__)
+os.chdir(loc)
+
+# Locatie video
+directory = 'videos/'
+vidname='test.MOV'
+video = directory + vidname
+print(f'Video location: {video}')
+

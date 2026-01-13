@@ -38,7 +38,7 @@ loc = os.path.dirname(__file__)
 os.chdir(loc)
 
 # Locatie video
-directory = 'data/'
+directory = 'videos/'
 # Naam video
 #vidname = 'slinger.MOV' # Exilim
 #vidname = 'slinger.MP4' # GoPro
