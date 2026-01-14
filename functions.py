@@ -6,30 +6,25 @@ import matplotlib.pyplot as plt
 import os
 
 
-temp_var = 1
-temp_unc = 0.1
-
-
 # defining meassured constants with their uncertainties and tags for tracking purposes
-m = unc.ufloat(temp_var, temp_unc, 'mass bob')
-M = unc.ufloat(temp_var, temp_unc, 'mass rod')
-l = unc.ufloat(temp_var, temp_unc, 'length bob')
-L = unc.ufloat(temp_var, temp_unc, 'length rod')
-h = unc.ufloat(temp_var, temp_unc, 'spring height')
-g = unc.ufloat(9.81, 0, 'gravitational acceleration')
-m_spring = unc.ufloat(temp_var, temp_unc, 'mass on spring')
-u = unc.ufloat(temp_var, temp_unc, 'displacement')
-
+m = unc.ufloat(92.28, 0.01, 'mass bob')*0.001 # mass of bob in kg
+M = unc.ufloat(1459.03, 0.07, 'mass rod')*0.001 # mass of rod in kg
+l = unc.ufloat(94.625, 0.025, 'length bob')*0.01 # length to center of mass of bob in m
+L = unc.ufloat(102.05, 0.05, 'length rod')*0.01 # length of rod in m
+h_spring = unc.ufloat(89.25, 0.05, 'spring height')*0.01 # length to spring attachment in m
+m_spring = unc.ufloat(38.13, 0.45, 'mass on spring')*0.001 # mass hanging onto spring in kg
+u = unc.ufloat(3.85, 0.11, 'displacement')*0.01 # displacement of mass hanging on spring under influence of gravity in m
+g = unc.ufloat(9.80665, 0.00001, 'gravitational acceleration') # gravitational acceleration in m/s^2, with negligible uncertainty (but not zero, since that could cause issues in the uncertainty package)
 
 # derived (constant) quantities with their uncertainties
 I = m*l**2 + (M*L**2)/3
-k = unc.ufloat(m_spring.n*g.n/u.n, m_spring.s*g.s/u.s, 'spring constant')
+k = unc.ufloat((m_spring*g/u).n, (m_spring*g/u).s, 'spring constant')
 # Created a new ufloat for k, since I won't track the error propagation of m_spring and u in the final experiment, 
 # basically treating k as constant (with uncertainty) from here on out
 
 # theoretical angular frequencies with their uncertainties
 w1_theory = unp.sqrt((m*l*g + M*L*g/2)/I)
-w2_theory = unp.sqrt((m*l*g + M*L*g/2 + 2*k*l*h)/I)
+w2_theory = unp.sqrt((m*l*g + M*L*g/2 + 2*k*l*h_spring)/I)
 
 # functions to calculate theoretical angles with uncertainties, based on time and initial conditions
 def theta1_theory(t, theta01, theta02, w1, w2):
@@ -39,14 +34,5 @@ def theta2_theory(t, theta01, theta02, w1, w2):
     return (theta01 + theta02)/2 * unp.cos(w1*t) + (theta02 - theta01)/2 * unp.cos(w2*t)
 
 
-#print(f'{k.tag} = {k}')
-
-
-lveer1 = unc.ufloat(14.85, 0.05)*0.01
-lveer2 = unc.ufloat(11, 0.1)*0.01
-mveer = unc.ufloat(38.13, 0.45)*0.001
-uitwijking = lveer1 - lveer2
-kveer = m*g/uitwijking
-print(uitwijking*100)
-print(kveer)
-
+print(f'w1 theoretical: {w1_theory} rad/s')
+print(f'w2 theoretical: {w2_theory} rad/s')
