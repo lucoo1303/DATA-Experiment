@@ -15,6 +15,7 @@ m = unc.ufloat(temp_var, temp_unc, 'mass bob')
 M = unc.ufloat(temp_var, temp_unc, 'mass rod')
 l = unc.ufloat(temp_var, temp_unc, 'length bob')
 L = unc.ufloat(temp_var, temp_unc, 'length rod')
+h = unc.ufloat(temp_var, temp_unc, 'spring height')
 g = unc.ufloat(temp_var, temp_unc, 'gravitational acceleration')
 m_spring = unc.ufloat(temp_var, temp_unc, 'mass on spring')
 u = unc.ufloat(temp_var, temp_unc, 'displacement')
@@ -28,7 +29,7 @@ k = unc.ufloat(m_spring.n*g.n/u.n, m_spring.s*g.s/u.s, 'spring constant')
 
 # theoretical angular frequencies with their uncertainties
 w1_theory = unp.sqrt((m*l*g + M*L*g/2)/I)
-w2_theory = unp.sqrt((m*l*g + M*L*g/2 + 2*k*l**2)/I)
+w2_theory = unp.sqrt((m*l*g + M*L*g/2 + 2*k*l*h)/I)
 
 # functions to calculate theoretical angles with uncertainties, based on time and initial conditions
 def theta1_theory(t, theta01, theta02, w1, w2):
