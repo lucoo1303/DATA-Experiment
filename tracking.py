@@ -38,16 +38,16 @@ loc = os.path.dirname(__file__)
 os.chdir(loc)
 
 # Locatie video
-directory = 'videos/'
+directory = ''
 # Naam video
 #vidname = 'slinger.MOV' # Exilim
 #vidname = 'slinger.MP4' # GoPro
-vidname = 'vid6.MOV' # Exilim
+vidname = 'testvid1.MOV' # Exilim
 
 # Directory om resultaten weg te schrijven 
-dir_write = 'output/'
+dir_write = ''
 # Dit is de naam van het databestand waar de locaties van het object worden weggeschreven
-filename_data = 'slinger.dat'
+filename_data = 'output.txt'
 # Deze tekst wordt in de header van je databestand gezet
 # Zo heb je context bij de inhoud van het databestand
 header_text = 'Exilim, slinger, 240 fps'

@@ -15,7 +15,8 @@ m = unc.ufloat(temp_var, temp_unc, 'mass bob')
 M = unc.ufloat(temp_var, temp_unc, 'mass rod')
 l = unc.ufloat(temp_var, temp_unc, 'length bob')
 L = unc.ufloat(temp_var, temp_unc, 'length rod')
-g = unc.ufloat(temp_var, temp_unc, 'gravitational acceleration')
+h = unc.ufloat(temp_var, temp_unc, 'spring height')
+g = unc.ufloat(9.81, 0, 'gravitational acceleration')
 m_spring = unc.ufloat(temp_var, temp_unc, 'mass on spring')
 u = unc.ufloat(temp_var, temp_unc, 'displacement')
 
@@ -28,7 +29,7 @@ k = unc.ufloat(m_spring.n*g.n/u.n, m_spring.s*g.s/u.s, 'spring constant')
 
 # theoretical angular frequencies with their uncertainties
 w1_theory = unp.sqrt((m*l*g + M*L*g/2)/I)
-w2_theory = unp.sqrt((m*l*g + M*L*g/2 + 2*k*l**2)/I)
+w2_theory = unp.sqrt((m*l*g + M*L*g/2 + 2*k*l*h)/I)
 
 # functions to calculate theoretical angles with uncertainties, based on time and initial conditions
 def theta1_theory(t, theta01, theta02, w1, w2):
@@ -38,14 +39,14 @@ def theta2_theory(t, theta01, theta02, w1, w2):
     return (theta01 + theta02)/2 * unp.cos(w1*t) + (theta02 - theta01)/2 * unp.cos(w2*t)
 
 
-print(f'{k.tag} = {k}')
+#print(f'{k.tag} = {k}')
 
-loc = os.path.dirname(__file__)
-os.chdir(loc)
 
-# Locatie video
-directory = 'videos/'
-vidname='test.MOV'
-video = directory + vidname
-print(f'Video location: {video}')
+lveer1 = unc.ufloat(14.85, 0.05)*0.01
+lveer2 = unc.ufloat(11, 0.1)*0.01
+mveer = unc.ufloat(38.13, 0.45)*0.001
+uitwijking = lveer1 - lveer2
+kveer = m*g/uitwijking
+print(uitwijking*100)
+print(kveer)
 
