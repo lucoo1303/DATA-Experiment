@@ -1,10 +1,11 @@
 import numpy as np
 import uncertainties as unc
 from uncertainties import unumpy as unp
-import scipy.odr as odr
 import matplotlib.pyplot as plt
+import warnings
 import os
 
+warnings.filterwarnings("ignore")
 
 # defining meassured constants with their uncertainties and tags for tracking purposes
 m = unc.ufloat(92.28, 0.01, 'mass bob')*0.001 # mass of bob in kg
