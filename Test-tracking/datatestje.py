@@ -27,14 +27,9 @@ data = np.genfromtxt(fname, delimiter='\t')
 
 frame_no = data[:,0]
 x = data[:,1]
-x_offset = x[2]
-x -= x_offset
-max_uitwijking = np.abs(np.min(x))
-
 y = data[:,1]
 
-
 plt.figure()
-plt.plot(x, frame_no, 'k.')
+plt.plot(frame_no, x, 'k.')
 plt.title('x-positie met offset (gelezen) (pixel)')
 plt.show()
