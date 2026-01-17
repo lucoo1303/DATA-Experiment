@@ -42,7 +42,7 @@ directory = ''
 # Naam video
 #vidname = 'slinger.MOV' # Exilim
 #vidname = 'slinger.MP4' # GoPro
-vidname = 'testvid3.MOV' # Exilim
+vidname = 'testvid4.MOV' # Exilim
 
 # Directory om resultaten weg te schrijven 
 dir_write = ''
