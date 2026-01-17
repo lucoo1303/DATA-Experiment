@@ -171,20 +171,26 @@ for n in np.arange(len(bboxes)):
     pos[n,0] = bboxes[n][0] + bboxes[n][2]/2
     pos[n,1] = bboxes[n][1] + bboxes[n][3]/2
 
+xpos = pos[:,0]
+ypos = pos[:,1]
+
+#%% plotten
+
+
 ### Plots van resultaten (je kunt deze met plt.savefig ook wegschrijven voor in je labjournaal)
 plt.figure()
-plt.plot(pos[:,0],'k.')
+plt.plot(xpos,'k.')
 plt.title('x-positie (pixel)')
 plt.vlines(x=[90,770], ymin=0, ymax=500)
 plt.show()
 
 plt.figure()
-plt.plot(pos[:,1],'k.')
+plt.plot(ypos,'k.')
 plt.title('y-positie (pixel)')
 plt.show()
 
 plt.figure()
-plt.plot(pos[:,0],pos[:,1],'k.')
+plt.plot(xpos,ypos,'k.')
 plt.xlim(0,nx)
 plt.ylim(ny,0)
 plt.title('y-positie tegen x-positie (pixel)')
@@ -200,5 +206,6 @@ Tips:
     Op elke rij staat de positie in elk frame.
 """
 
-np.savetxt(dir_write + filename_data,pos[90:770],delimiter='\t',newline='\n',
+#%% wegschrijven
+np.savetxt(dir_write + filename_data,pos,delimiter='\t',newline='\n',
            header=header_text)
