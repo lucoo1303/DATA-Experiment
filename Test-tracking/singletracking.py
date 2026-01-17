@@ -171,29 +171,70 @@ for n in np.arange(len(bboxes)):
     pos[n,0] = bboxes[n][0] + bboxes[n][2]/2
     pos[n,1] = bboxes[n][1] + bboxes[n][3]/2
 
-xpos = pos[:,0]
-ypos = pos[:,1]
+#%% data snijden
+
+x = pos[:,0]
+y = pos[:,1]
+
+def get_index_of_release(x):   
+    abs_max = np.max(np.abs(x))
+    i = 0
+    while np.abs(x[i]) < 0.95*abs_max:
+        i += 1
+    jump = 10
+    while np.abs(x[i] - x[i+jump]) < 0.05*np.abs(x[i]) and i < len(x) - jump - 1:
+        i += 1
+    return i
+
+def correct_data(pos):
+    x = pos[:,0]
+    y = 384 - pos[:,1]
+    return np.array([x - x[0], y - y[0]]).T
+
+pos_offset = correct_data(pos)
+x_offset = pos_offset[:,0]
+y_offset = pos_offset[:,1]
+
+index_of_release = get_index_of_release(x_offset) # ongeveer frame 1800 bij testvid4.MOV
+
+x_data = x_offset[index_of_release:]
+y_data = y_offset[index_of_release:]
+frame_data = np.arange(len(x_data))
 
 #%% plotten
 
-
 ### Plots van resultaten (je kunt deze met plt.savefig ook wegschrijven voor in je labjournaal)
 plt.figure()
-plt.plot(xpos,'k.')
-plt.title('x-positie (pixel)')
-plt.vlines(x=[90,770], ymin=0, ymax=500)
+plt.plot(x,'k.')
+plt.title('onbewerkte x-positie (pixel)')
+plt.vlines(x=index_of_release, ymin=0, ymax=500)
 plt.show()
 
 plt.figure()
-plt.plot(ypos,'k.')
-plt.title('y-positie (pixel)')
+plt.plot(y,'k.')
+plt.title('onbewerkte y-positie (pixel)')
 plt.show()
 
 plt.figure()
-plt.plot(xpos,ypos,'k.')
+plt.plot(x,y,'k.')
 plt.xlim(0,nx)
 plt.ylim(ny,0)
-plt.title('y-positie tegen x-positie (pixel)')
+plt.title('onbewerkte y-positie tegen onbewerkte x-positie (pixel)')
+plt.show()
+
+plt.figure()
+plt.plot(x_data,'k.')
+plt.title('gecorrigeerde x-positie (pixel)')
+plt.show()
+
+plt.figure()
+plt.plot(y_data,'k.')
+plt.title('gecorrigeerde y-positie (pixel)')
+plt.show()
+
+plt.figure()
+plt.plot(x_data,y_data,'k.')
+plt.title('gecorrigeerde y-positie tegen x-positie (pixel)')
 plt.show()
 
 """
@@ -206,6 +247,15 @@ Tips:
     Op elke rij staat de positie in elk frame.
 """
 
-#%% wegschrijven
-np.savetxt(dir_write + filename_data,pos,delimiter='\t',newline='\n',
-           header=header_text)
+#%% wegschrijven na check data
+data_goed = input("Data goed gesliced? y/n ")
+
+if data_goed == 'y':
+    data_wegschrijven = np.array([frame_data, x_data, y_data]).T
+    np.savetxt(dir_write + filename_data,data_wegschrijven,delimiter='\t',newline='\n',
+               header=header_text)
+
+
+
+
+
