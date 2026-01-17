@@ -163,15 +163,13 @@ while cap.isOpened():
 #     # Pause om tijd te creëren voor update
 #     plt.pause(0.1)
 
-#%% Resultaten berekenen, plotten en wegschrijven
+#%% data ophalen en snijden
 
 # Omrekenen bounding box naar x- en y-positie van midden van bounding box
 pos = np.zeros((len(bboxes),2))
 for n in np.arange(len(bboxes)):
     pos[n,0] = bboxes[n][0] + bboxes[n][2]/2
     pos[n,1] = bboxes[n][1] + bboxes[n][3]/2
-
-#%% data snijden
 
 x = pos[:,0]
 y = pos[:,1]
