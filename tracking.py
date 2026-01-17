@@ -232,7 +232,7 @@ plt.show()
 
 plt.figure()
 plt.plot(x_data,y_data,'k.')
-plt.ylim(-200, 200)
+plt.ylim(-100, 100)
 plt.title('gecorrigeerde y-positie tegen x-positie (pixel)')
 plt.show()
 
