@@ -21,7 +21,6 @@ g = unc.ufloat(9.80665, 0.00001, 'gravitational acceleration') # gravitational a
 loc = os.path.dirname(__file__)
 os.chdir(loc)
 fname = 'output.txt'
-print(fname)
 
 data = np.genfromtxt(fname, delimiter='\t')
 
