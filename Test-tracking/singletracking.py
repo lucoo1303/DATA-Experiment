@@ -174,27 +174,37 @@ for n in np.arange(len(bboxes)):
 x = pos[:,0]
 y = pos[:,1]
 
-def get_index_of_release(x):   
+# Schat ruwweg het moment waarop de slinger in de video wordt losgelaten
+def get_index_of_release(x):
+    # Vind de maximale (start)uitwijking
     abs_max = np.max(np.abs(x))
     i = 0
+    # Doorloop de video tot het punt waarop de uitwijking ongeveer gelijk is aan de max
     while np.abs(x[i]) < 0.95*abs_max:
         i += 1
+    # De slinger zit nu ongeveer op de startpositie
     jump = 10
-    while np.abs(x[i] - x[i+jump]) < 0.05*np.abs(x[i]) and i < len(x) - jump - 1:
+    # Doorloop nu de video totdat de uitwijking ietsjes later in de video
+    # signifant kleiner is, dat is ongeveer het punt van loslaten
+    while np.abs(x[i+jump]) > 0.95*np.abs(x[i]) and i < len(x) - jump - 1:
         i += 1
     return i
 
+# Functie om de data om te zetten naar standaard cartesische coordinaten, met
+# de assen gecentreerd op de neutrale positie
 def correct_data(pos):
     x = pos[:,0]
     y = 384 - pos[:,1]
     return np.array([x - x[0], y - y[0]]).T
 
+# Corrigeer de data naar simpelere assen
 pos_offset = correct_data(pos)
 x_offset = pos_offset[:,0]
 y_offset = pos_offset[:,1]
 
 index_of_release = get_index_of_release(x_offset) # ongeveer frame 1800 bij testvid4.MOV
 
+# Pak alleen de relevante data (na loslaten slinger)
 x_data = x_offset[index_of_release:]
 y_data = y_offset[index_of_release:]
 frame_data = np.arange(len(x_data))
@@ -202,6 +212,9 @@ frame_data = np.arange(len(x_data))
 #%% plotten
 
 ### Plots van resultaten (je kunt deze met plt.savefig ook wegschrijven voor in je labjournaal)
+
+# Plots van onbewerkte data
+
 plt.figure()
 plt.plot(x,'k.')
 plt.title('onbewerkte x-positie (pixel)')
@@ -220,6 +233,8 @@ plt.ylim(ny,0)
 plt.title('onbewerkte y-positie tegen onbewerkte x-positie (pixel)')
 plt.show()
 
+# Plots van gecorrigeerde data
+
 plt.figure()
 plt.plot(x_data,'k.')
 plt.title('gecorrigeerde x-positie (pixel)')
@@ -232,6 +247,7 @@ plt.show()
 
 plt.figure()
 plt.plot(x_data,y_data,'k.')
+plt.ylim(-100, 100)
 plt.title('gecorrigeerde y-positie tegen x-positie (pixel)')
 plt.show()
 
@@ -246,8 +262,10 @@ Tips:
 """
 
 #%% wegschrijven na check data
+# Checken of data goed gesliced is voor wegschrijven, of dat ik opnieuw moet tracken
 data_goed = input("Data goed gesliced? y/n ")
 
+# Schrijf de data weg als deze goed is gesliced
 if data_goed == 'y':
     data_wegschrijven = np.array([frame_data, x_data, y_data]).T
     np.savetxt(dir_write + filename_data,data_wegschrijven,delimiter='\t',newline='\n',
