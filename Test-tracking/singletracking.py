@@ -42,7 +42,7 @@ directory = ''
 # Naam video
 #vidname = 'slinger.MOV' # Exilim
 #vidname = 'slinger.MP4' # GoPro
-vidname = 'testvid4.MOV' # Exilim
+vidname = 'testvid2.MOV' # Exilim
 
 # Directory om resultaten weg te schrijven 
 dir_write = ''
@@ -52,7 +52,8 @@ output_path = directory + filename_data
 # Deze tekst wordt in de header van je databestand gezet
 # Zo heb je context bij de inhoud van het databestand
 header_text = 'Exilim, slinger, 240 fps, 512x384 px, 21-01-2026 \n'
-header_text += 'frame no          x (px)          y (px)'
+header_text += 'Data uit verschillende videos gescheiden met een lege regel \n'
+header_text += 'frame nummer                x (px)                       y (px)'
 
 write_header = True
 
@@ -273,6 +274,7 @@ Tips:
 
 #%% wegschrijven na check data
 # Checken of data goed gesliced is voor wegschrijven, of dat ik opnieuw moet tracken
+# Te zien aan de vline in de onbewerkte x-positie plot
 data_goed = input("Data goed gesliced? y/n ")
 
 # Schrijf de data weg als deze goed is gesliced
