@@ -40,7 +40,6 @@ os.chdir(loc)
 # Locatie video
 directory = ''
 # Naam video
-#vidname = 'slinger.MOV' # Exilim
 #vidname = 'slinger.MP4' # GoPro
 vidname = 'testvid2.MOV' # Exilim
 
@@ -51,13 +50,23 @@ filename_data = 'output.txt'
 output_path = directory + filename_data
 # Deze tekst wordt in de header van je databestand gezet
 # Zo heb je context bij de inhoud van het databestand
-header_text = 'Exilim, slinger, 240 fps, 512x384 px, 21-01-2026 \n'
-header_text += 'Data uit verschillende videos gescheiden met een lege regel \n'
+header_text = 'Exilim, slinger, 240 fps, 512x384 px, 17-01-2026 \n'
+header_text += 'Video: ' + vidname + ' \n'
+header_text += 'Seperate video data is seperated with a new header \n'
 header_text += 'frame nummer                x (px)                       y (px)'
 
+
+verwijder_oude_data = input('Verwijder oude data? y/n ')
+
+# Eventuele oudere data verwijderen voordat er nieuwe wordt bijgeschreven
+if verwijder_oude_data == 'y':
+    with open(output_path, "r+") as f:
+        f.seek(0)
+        f.truncate()
+        
 write_header = True
 
-# Checken of bij wegschrijven er wel of geen header toegevoegd moet worden
+# Checken of er al een header staat of niet
 with open(output_path, 'r') as f:
     first_line = f.readline()
     if first_line.startswith('#'):
@@ -275,14 +284,13 @@ Tips:
 #%% wegschrijven na check data
 # Checken of data goed gesliced is voor wegschrijven, of dat ik opnieuw moet tracken
 # Te zien aan de vline in de onbewerkte x-positie plot
-data_goed = input("Data goed gesliced? y/n ")
+is_data_correct = input("Data goed gesliced? y/n ")
 
 # Schrijf de data weg als deze goed is gesliced
-if data_goed == 'y':
+if is_data_correct == 'y':
     data_wegschrijven = np.array([frame_data, x_data, y_data]).T
     with open(output_path, 'a') as f:
-        np.savetxt(output_path,data_wegschrijven,delimiter='\t',newline='\n',
-                   header=header_text if write_header else '\n')
+        np.savetxt(f,data_wegschrijven,delimiter='\t',newline='\n',header=header_text)
 
 
 
