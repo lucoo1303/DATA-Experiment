@@ -48,9 +48,19 @@ vidname = 'testvid4.MOV' # Exilim
 dir_write = ''
 # Dit is de naam van het databestand waar de locaties van het object worden weggeschreven
 filename_data = 'output.txt'
+output_path = directory + filename_data
 # Deze tekst wordt in de header van je databestand gezet
 # Zo heb je context bij de inhoud van het databestand
-header_text = 'Exilim, slinger, 240 fps'
+header_text = 'Exilim, slinger, 240 fps, 512x384 px, 21-01-2026 \n'
+header_text += 'frame no          x (px)          y (px)'
+
+write_header = True
+
+# Checken of bij wegschrijven er wel of geen header toegevoegd moet worden
+with open(output_path, 'r') as f:
+    first_line = f.readline()
+    if first_line.startswith('#'):
+        write_header = False
 
 #%% Beschikbare trackers (OpenCV 4.13)
 
@@ -268,8 +278,9 @@ data_goed = input("Data goed gesliced? y/n ")
 # Schrijf de data weg als deze goed is gesliced
 if data_goed == 'y':
     data_wegschrijven = np.array([frame_data, x_data, y_data]).T
-    np.savetxt(dir_write + filename_data,data_wegschrijven,delimiter='\t',newline='\n',
-               header=header_text)
+    with open(output_path, 'a') as f:
+        np.savetxt(output_path,data_wegschrijven,delimiter='\t',newline='\n',
+                   header=header_text if write_header else '\n')
 
 
 
