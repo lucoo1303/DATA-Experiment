@@ -23,7 +23,6 @@ os.chdir(loc)
 fname = 'output.txt'
 
 raw_data = np.genfromtxt(fname, delimiter='\t')
-test_data = np.concatenate((raw_data[0:3],raw_data[0:4]))
 seperated_data = []
 video_data = []
 for i in range(len(raw_data)):
