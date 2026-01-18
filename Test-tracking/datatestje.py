@@ -22,11 +22,27 @@ loc = os.path.dirname(__file__)
 os.chdir(loc)
 fname = 'output.txt'
 
-data = np.genfromtxt(fname, delimiter='\t')
+raw_data = np.genfromtxt(fname, delimiter='\t')
+test_data = np.concatenate((raw_data[0:3],raw_data[0:4]))
+seperated_data = []
+video_data = []
+for i in range(len(raw_data)):
+    frame_no = raw_data[i][0]
+    if frame_no == 0 and i != 0:
+        seperated_data.append(np.array(video_data))
+        video_data = []
+    video_data.append(raw_data[i])
+video_data = np.array(video_data)
+seperated_data.append(video_data)
 
-frame_no = data[:,0]
-x = data[:,1]
-y = data[:,1]
+vid0_data = seperated_data[0]
+vid1_data = seperated_data[1]
+
+
+
+frame_no = raw_data[:,0]
+x = raw_data[:,1]
+y = raw_data[:,1]
 
 plt.figure()
 plt.plot(frame_no, x, 'k.')
