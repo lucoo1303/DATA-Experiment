@@ -7,18 +7,18 @@ import os
 
 
 # gemeten constanten met onzekerheden en tags
-m = unc.ufloat(92.28, 0.01, 'mass bob')*0.001 # massa van gewichtje in kg
-M = unc.ufloat(1459.03, 0.07, 'mass rod')*0.001 # massa van staaf in kg
-l = unc.ufloat(94.625, 0.025, 'length bob')*0.01 # lengte tot zwaartepunt van gewichtje in m
-L = unc.ufloat(102.05, 0.05, 'length rod')*0.01 # lengte van staaf in m
-h_veer = unc.ufloat(89.25, 0.05, 'spring height')*0.01 # lengte tot veer bevestiging in m
-m_veer = unc.ufloat(38.13, 0.45, 'mass on spring')*0.001 # massa hangend aan veer in kg
-u = unc.ufloat(3.85, 0.11, 'displacement')*0.01 # verplaatsing van massa hangend aan veer onder invloed van zwaartekracht in m
-g = unc.ufloat(9.80665, 0.00001, 'gravitational acceleration') # zwaartekrachtsversnelling in m/s^2, met verwaarloosbare onzekerheid (maar niet nul, aangezien dat problemen kan veroorzaken in het onzekerhedenpakket)
+m = unc.ufloat(92.28, 0.01, 'massa gewichtje')*0.001 # massa van gewichtje in kg
+M = unc.ufloat(1459.03, 0.07, 'massa slinger')*0.001 # massa van slinger in kg
+l = unc.ufloat(94.625, 0.025, 'lengte gewichtje')*0.01 # lengte tot zwaartepunt van gewichtje in m
+L = unc.ufloat(102.05, 0.05, 'lengte slinger')*0.01 # lengte van slinger in m
+h_veer = unc.ufloat(89.25, 0.05, 'hoogte veer')*0.01 # lengte tot veer bevestiging in m
+m_veer = unc.ufloat(38.13, 0.45, 'massa aan veer')*0.001 # massa hangend aan veer in kg
+u = unc.ufloat(3.85, 0.11, 'verplaatsing')*0.01 # verplaatsing van massa hangend aan veer onder invloed van zwaartekracht in m
+g = unc.ufloat(9.80665, 0.00001, 'zwaartekrachtsversnelling') # zwaartekrachtsversnelling in m/s^2, met verwaarloosbare onzekerheid (maar niet nul, aangezien dat problemen kan veroorzaken in het onzekerhedenpakket)
 
 # constanten afgeleid uit andere constanten met onzekerheden
 I = m*l**2 + (M*L**2)/3
-k = unc.ufloat((m_veer*g/u).n, (m_veer*g/u).s, 'spring constant')
+k = unc.ufloat((m_veer*g/u).n, (m_veer*g/u).s, 'veerconstante')
 # Nieuwe ufloat gemaakt voor k, aangezien ik de foutpropagatie van m_veer en u niet zal bijhouden in het uiteindelijke experiment
 
 # theoretische hoeksnelheid met onzekerheden
