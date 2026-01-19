@@ -63,13 +63,52 @@ def get_data_per_video(data):
     video_data = []
     for i in range(len(data)):
         frame_no = data[i][0]
-        if frame_no == 0 and i != 0: # Nieuw filmpje begonnen, want frame nummer is 0
+        if frame_no.n == 0 and i != 0: # Nieuw filmpje begonnen, want frame nummer is 0
             seperated_data.append(np.array(video_data))
             video_data = []
         video_data.append(data[i])
     video_data = np.array(video_data)
     seperated_data.append(video_data)
     return seperated_data
+
+# Functie om de data van een specifieke video te plotten
+def plot_vid_data(data, vid_num):
+    vid = data[vid_num]
+    t = vid[:,0]
+    x = vid[:,1]
+    y = vid[:,2]
+
+    # de nominale waardes
+    t_n = unp.nominal_values(t)
+    x_n = unp.nominal_values(x)
+    y_n = unp.nominal_values(y)
+
+    # de onzekerheden
+    t_s = unp.std_devs(t)
+    x_s = unp.std_devs(x)
+    y_s = unp.std_devs(y)
+
+    plt.figure()
+    plt.errorbar(t_n, x_n, xerr=t_s, yerr=x_s, fmt='.')
+    plt.title(f'Video {vid_num}: x-positie op tijdstip')
+    plt.xlabel('tijd (s)')
+    plt.ylabel('x positie (m)')
+    plt.show()
+
+    plt.figure()
+    plt.errorbar(t_n, y_n, xerr=t_s, yerr=y_s, fmt='.')
+    plt.title(f'Video {vid_num}: y-positie op tijdstip')
+    plt.xlabel('tijd (s)')
+    plt.ylabel('y positie (m)')
+    plt.show()
+
+    plt.figure()
+    plt.errorbar(x_n, y_n, xerr=x_s, yerr=y_s, fmt='.')
+    plt.title(f'Video {vid_num}: y positie tegen x positie')
+    plt.xlabel('x positie (m)')
+    plt.ylabel('y positie (m)')
+    plt.show()
+
 
 loc = os.path.dirname(__file__)
 os.chdir(loc)
@@ -84,14 +123,4 @@ phys_data = convert_video_data_to_physical(raw_data_unc, pixel_scale, fps)
 # De data gescheiden per video
 data_per_video = get_data_per_video(phys_data)
 
-data_vid0 = data_per_video[0]
-data_vid1 = data_per_video[1]
-
-# frame_no_vid0 = data_vid0[:,0]
-# x_vid0 = data_vid0[:,1]
-# y_vid0 = data_vid0[:,2]
-
-# plt.figure()
-# plt.plot(frame_no_vid0, x_vid0, 'k.')
-# plt.title('x-positie met offset (gelezen) (pixel)')
-# plt.show()
+plot_vid_data(data_per_video, 0)
