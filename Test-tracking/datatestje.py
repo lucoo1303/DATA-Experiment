@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import uncertainties as unc
 from uncertainties import unumpy as unp
+import math
 import os
 import warnings
 
@@ -25,7 +26,7 @@ k = unc.ufloat((m_veer*g/u).n, (m_veer*g/u).s, 'veerconstante')
 # Nieuwe ufloat gemaakt voor k, aangezien ik de foutpropagatie van m_veer en u niet zal bijhouden in het uiteindelijke experiment
 
 # theoretische hoeksnelheid met onzekerheden
-w1_theorie = unp.sqrt((m*l*g + M*L*g/2)/I)
+w1_theorie = ((m*l*g + M*L*g/2)/I)**0.5
 
 # tijdstippen waar ik de data wil evalueren 
 tn = np.arange(1, 6, 0.5)
@@ -78,10 +79,12 @@ def get_data_per_video(data):
 def deflection_to_angle(deflection, length):
     return unp.arcsin(deflection / length)
 
+# Functie om hoek data toe te voegen aan dataset
 def add_angle_data(data, length):
     angle = deflection_to_angle(data[:,1], length)
     return np.column_stack((data, angle))
 
+# Functie om beginhoek uit data te halen
 def get_theta0(data):
     return data[:,3][0]
 
@@ -165,13 +168,7 @@ def theta_and_t_at_tn(data, target_time):
     std_devs = [t.s, angle.s]
     return unp.uarray(nominal_values, std_devs)
 
-def get_angles_at_tn(data, target_times):
-    angles_at_times = []
-    for t in target_times:
-        angle_at_t = theta_and_t_at_tn(data, t)
-        angles_at_times.append(angle_at_t)
-    return np.array(angles_at_times)
-
+# functie om data op tijdstip tn te verzamelen
 def data_tn(data, tn):
     data_at_tn = []
     for vid in data:
@@ -182,12 +179,14 @@ def data_tn(data, tn):
         data_at_tn.append(unp.uarray(nom_vals, std_devs))
     return np.array(data_at_tn)
 
-def plot_and_fit_theta_vs_theta0(data, tn):
-    plot_theta_vs_theta0(data, tn) 
-    fit_params = fit_theta_vs_theta0(data, tn) 
+# functie om plot en fit uit te voeren voor theta(tn) vs theta0 voor alle tn
+def plot_and_fit_theta_vs_theta0(data):
+    plot_theta_vs_theta0(data) 
+    fit_params = fit_theta_vs_theta0(data) 
     return fit_params 
 
-def plot_theta_vs_theta0(data, tn, fit=False):
+# functie om plot van theta(tn) vs theta0 te maken voor alle tn
+def plot_theta_vs_theta0(data):
     fig = plt.figure(figsize=(10, 5))
     ax = fig.gca()
 
@@ -196,7 +195,7 @@ def plot_theta_vs_theta0(data, tn, fit=False):
         data_at_t = data_tn(data, t)
         theta_0 = data_at_t[:,0]
         theta_t = data_at_t[:,1]
-        tn_plot(ax, theta_0, theta_t, n, tn)
+        plot_single_tn(ax, theta_0, theta_t, n)
         n += 1
 
     ax.set_xlabel(r'beginhoek $\theta_0$ (rad)')
@@ -206,7 +205,8 @@ def plot_theta_vs_theta0(data, tn, fit=False):
     fig.tight_layout(rect=[0, 0, 0.95, 1])
     plt.show()
 
-def fit_theta_vs_theta0(data, tn):
+# functie om fit van theta(tn) vs theta0 uit te voeren voor alle tn
+def fit_theta_vs_theta0(data):
     fig = plt.figure(figsize=(10, 5))
     ax = fig.gca()
 
@@ -217,7 +217,7 @@ def fit_theta_vs_theta0(data, tn):
         data_at_t = data_tn(data, t)
         theta_0 = data_at_t[:,0]
         theta_t = data_at_t[:,1]
-        fit_params.append(tn_fit(ax, theta_0, theta_t, n, tn))
+        fit_params.append(fit_single_tn(ax, theta_0, theta_t, n))
         n += 1
 
     ax.set_xlabel(r'beginhoek $\theta_0$ (rad)')
@@ -228,7 +228,8 @@ def fit_theta_vs_theta0(data, tn):
     plt.show()
     return np.array(fit_params)
 
-def tn_plot(ax, x, y, n, tn):
+# functie om een plot voor een specifieke tn te maken
+def plot_single_tn(ax, x, y, n):
     x_n = unp.nominal_values(x)
     y_n = unp.nominal_values(y)
     x_s = unp.std_devs(x)
@@ -236,9 +237,8 @@ def tn_plot(ax, x, y, n, tn):
 
     ax.errorbar(x_n, y_n, xerr=x_s, yerr=y_s, fmt='.', label=fr'$t_{{{n}}}={tn[n]}$')
 
-
-def tn_fit(ax, x, y, n, tn):
-
+# functie om een fit voor een specifieke tn uit te voeren
+def fit_single_tn(ax, x, y, n):
     x_n = unp.nominal_values(x)
     y_n = unp.nominal_values(y)
     x_s = unp.std_devs(x)
@@ -325,7 +325,8 @@ def tn_fit(ax, x, y, n, tn):
 
     return np.array([par_best, par_sig_ext, par_cov, chi2, chi2red], dtype=object)
 
-def collect_w1s(fit_params, tn):
+# functie om alle w1 schattingen te verzamelen uit de fit parameters
+def collect_w1s(fit_params):
     best_pars = fit_params[:,0]
     sig_pars = fit_params[:,1]
     w1_noms = []
@@ -340,6 +341,25 @@ def collect_w1s(fit_params, tn):
         w1_stds.append(w1.s)
     return unp.uarray(w1_noms, w1_stds)
 
+def plot_w1(w1s):
+    w1_n = unp.nominal_values(w1s)
+    w1_s = unp.std_devs(w1s)
+    metingen = np.arange(len(w1s))
+    plt.figure()
+    plt.hlines(w1_theorie.n, xmin = 0, xmax = len(w1s)-1, color='r', label=r'$\omega_1$')
+    plt.fill_between([-1, len(w1s)], w1_theorie.n - w1_theorie.s, w1_theorie.n + w1_theorie.s, color='r', alpha=0.2, label=r'$\omega_1 + \sigma$')
+    plt.fill_between([0, len(w1s)-1], w1_theorie.n + w1_theorie.s, w1_theorie.n + 2*w1_theorie.s, color='r', alpha=0.1, label=r'$\omega_1 + 2\sigma$')
+    plt.fill_between([0, len(w1s)-1], w1_theorie.n - w1_theorie.s, w1_theorie.n - 2*w1_theorie.s, color='r', alpha=0.1)
+    plt.errorbar(metingen, w1_n, yerr=w1_s, fmt='.', label=r'$\omega_1$ metingen')
+    plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
+    plt.title(r'Schattingen van $\omega_1$ uit verschillende metingen')
+    plt.xlabel('meting')
+    plt.ylabel(r'$\omega_1$ (rad/s)')
+    plt.xlim(0, len(w1s)-1)
+    plt.tight_layout(rect=[0, 0, 0.95, 1])
+    plt.show()
+
+# functie om de beste gewogen schatter voor w1 te krijgen
 def get_best_weighted_w1_guess(w1s):
     noms = unp.nominal_values(w1s)
     stds = unp.std_devs(w1s)
@@ -365,9 +385,11 @@ angle_data = add_angle_data(phys_data, l)
 # De data gescheiden per video
 data_per_video = get_data_per_video(angle_data)
 # Verzamel alle fit parameters per tn
-fit_params = plot_and_fit_theta_vs_theta0(data_per_video, tn)
+fit_params = plot_and_fit_theta_vs_theta0(data_per_video)
 # Alle schattingen van w1 op basis van de fits
-w1s = collect_w1s(fit_params, tn)
+w1s = collect_w1s(fit_params)
+# Plot de verzamelde w1 schattingen met de theoretische waarde
+plot_w1(w1s)
 # De beste schatter voor w1 op basis van gewogen gemiddelde
 w1 = get_best_weighted_w1_guess(w1s)
 
