@@ -325,7 +325,29 @@ def tn_fit(ax, x, y, n, tn):
 
     return np.array([par_best, par_sig_ext, par_cov, chi2, chi2red], dtype=object)
 
+def collect_w1s(fit_params, tn):
+    best_pars = fit_params[:,0]
+    sig_pars = fit_params[:,1]
+    w1_noms = []
+    w1_stds = []
+    for i in range(len(tn)):
+        slope_val = best_pars[i][1]
+        slope_unc = sig_pars[i][1]
+        slope = unc.ufloat(slope_val, slope_unc)
+        t = unc.ufloat(tn[i], convert_frame_to_time(frame_unc, fps))
+        w1 = unp.arccos(slope)/t
+        w1_noms.append(w1.n)
+        w1_stds.append(w1.s)
+    return unp.uarray(w1_noms, w1_stds)
 
+def get_best_weighted_w1_guess(w1s):
+    noms = unp.nominal_values(w1s)
+    stds = unp.std_devs(w1s)
+    weights = 1 / (stds**2)
+    weighted_avg = np.sum(noms * weights) / np.sum(weights)
+    weighted_std = np.sqrt(1 / np.sum(weights))
+    w1 = unc.ufloat(weighted_avg, weighted_std)
+    return w1
 
 
 loc = os.path.dirname(__file__)
@@ -342,5 +364,11 @@ phys_data = convert_video_data_to_physical(raw_data_unc, pixel_scale, fps)
 angle_data = add_angle_data(phys_data, l)
 # De data gescheiden per video
 data_per_video = get_data_per_video(angle_data)
-
+# Verzamel alle fit parameters per tn
 fit_params = plot_and_fit_theta_vs_theta0(data_per_video, tn)
+# Alle schattingen van w1 op basis van de fits
+w1s = collect_w1s(fit_params, tn)
+# De beste schatter voor w1 op basis van gewogen gemiddelde
+w1 = get_best_weighted_w1_guess(w1s)
+
+print(w1, w1_theorie)
