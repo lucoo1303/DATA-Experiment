@@ -368,6 +368,12 @@ def red_chi2(data, ref):
     red_chi2 = chi2 / (len(data) - 1)
     return red_chi2
 
+# algemene functie die checkt of een beste schatter binnen een bepaald percentage van een referentie ligt
+def best_guess_within_percentage(best_guess, percentage, ref=w1_theorie):
+    max = ref.n * (1 + percentage/100)
+    min = ref.n * (1 - percentage/100)
+    return (best_guess.n <= max) and (best_guess.n >= min)
+
 # functie om de w1 metingen en beste schatter te plotten met een referentie waarde
 def plot_w1(w1s, best_guess, ref=w1_theorie):
     w1_n = unp.nominal_values(w1s)
@@ -411,15 +417,22 @@ fit_params = plot_and_fit_theta_vs_theta0(data_per_video)
 # Alle schattingen van w1 op basis van de fits
 w1s = collect_w1s(fit_params)
 # De beste schatter voor w1 op basis van gewogen gemiddelde
-w1 = get_best_weighted_guess(w1s)
+w1_best_guess = get_best_weighted_guess(w1s)
 # Check of de beste schatter strijdig is met de theoretische waarde
-strijdig = conflict_analysis(w1, w1_theorie)
+strijdig = conflict_analysis(w1_best_guess, w1_theorie)
 # Bereken de gereduceerde chi2 van de w1 metingen ten opzichte van de theoretische waarde
 red_chi2_w1 = red_chi2(w1s, w1_theorie)
+# Check of de beste schatter binnen 20% van de theoretische waarde ligt, zoals in de hypothese was verwacht
+binnen_20_procent = best_guess_within_percentage(w1_best_guess, 20)
 # Plot de verzamelde w1 schattingen met de beste schatter en de theoretische waarde
-plot_w1(w1s, w1)
+plot_w1(w1s, w1_best_guess)
 
-print(f'w1 theorie: {w1_theorie}')
-print(f'w1 gemeten: {w1}')
-print(f'Strijdig: {strijdig}')
-print(f'Red chi2: {red_chi2_w1}')
+# Print de informatie naar de console voor de rapportage en het labjournaal
+print('--------------------------------------------------------')
+print('Resultaten van de w1 meting en analyse:')
+print(f'w1 theorie:                 {w1_theorie}')
+print(f'w1 gemeten:                 {w1_best_guess}')
+print(f'Strijdig:                   {strijdig}')
+print(f'Red chi2:                   {red_chi2_w1}')
+print(f'Binnen 20% van theorie:     {binnen_20_procent}')
+print('--------------------------------------------------------')
