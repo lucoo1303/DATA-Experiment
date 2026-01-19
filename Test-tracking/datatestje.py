@@ -61,7 +61,7 @@ def convert_frame_to_time(frame_no, fps):
 def convert_pixel_to_physical(pixel_value, pixel_scale):
     return pixel_value * pixel_scale
 
-# Functie om data per video te scheiden
+# Functie om data per video te scheiden, returnt een lijst van numpy arrays
 def get_data_per_video(data):
     seperated_data = []
     video_data = []
@@ -164,28 +164,29 @@ def theta_and_t_at_tn(data, target_time):
     angle_s = uncertaninty_in_angle_due_to_approximation(angles, i)
     angle = unc.ufloat(angle_n, angle_s)
     
-    nominal_values = [t.n, angle.n]
-    std_devs = [t.s, angle.s]
-    return unp.uarray(nominal_values, std_devs)
+    noms = [t.n, angle.n]
+    stds = [t.s, angle.s]
+    return unp.uarray(noms, stds)
 
-# functie om data op tijdstip tn te verzamelen
+# functie om de data van alle video's op specifiek tijdstip tn te verzamelen
 def data_tn(data, tn):
     data_at_tn = []
     for vid in data:
         theta0 = get_theta0(vid)
         theta_tn = theta_and_t_at_tn(vid, tn)[1]
-        nom_vals = [theta0.n, theta_tn.n]
-        std_devs = [theta0.s, theta_tn.s]
-        data_at_tn.append(unp.uarray(nom_vals, std_devs))
+        noms = [theta0.n, theta_tn.n]
+        stds = [theta0.s, theta_tn.s]
+        data_at_tn.append(unp.uarray(noms, stds))
     return np.array(data_at_tn)
 
-# functie om plot en fit uit te voeren voor theta(tn) vs theta0 voor alle tn
+# functie om plot en fit uit te voeren voor theta(tn) vs theta0 voor alle t in tn
+# returnt een array met fit parameters voor elke fit, waaruit w1 berekend kan worden
 def plot_and_fit_theta_vs_theta0(data):
     plot_theta_vs_theta0(data) 
     fit_params = fit_theta_vs_theta0(data) 
     return fit_params 
 
-# functie om plot van theta(tn) vs theta0 te maken voor alle tn
+# functie om plot van theta(tn) vs theta0 te maken voor alle t in tn
 def plot_theta_vs_theta0(data):
     fig = plt.figure(figsize=(10, 5))
     ax = fig.gca()
@@ -205,7 +206,7 @@ def plot_theta_vs_theta0(data):
     fig.tight_layout(rect=[0, 0, 0.95, 1])
     plt.show()
 
-# functie om fit van theta(tn) vs theta0 uit te voeren voor alle tn
+# functie om fit van theta(tn) vs theta0 uit te voeren voor alle t in tn
 def fit_theta_vs_theta0(data):
     fig = plt.figure(figsize=(10, 5))
     ax = fig.gca()
@@ -325,7 +326,8 @@ def fit_single_tn(ax, x, y, n):
 
     return np.array([par_best, par_sig_ext, par_cov, chi2, chi2red], dtype=object)
 
-# functie om alle w1 schattingen te verzamelen uit de fit parameters
+# functie om alle w1 schattingen te berekenen op basis van het theoretisch model
+# helling wordt gehaald uit de fit parameters
 def collect_w1s(fit_params):
     best_pars = fit_params[:,0]
     sig_pars = fit_params[:,1]
@@ -341,7 +343,7 @@ def collect_w1s(fit_params):
         w1_stds.append(w1.s)
     return unp.uarray(w1_noms, w1_stds)
 
-# algemene functie om de beste gewogen schatter voor een dataset te krijgen
+# algemene functie om de gewogen beste schatter voor een dataset te krijgen
 def get_best_weighted_guess(data):
     noms = unp.nominal_values(data)
     stds = unp.std_devs(data)
@@ -351,7 +353,7 @@ def get_best_weighted_guess(data):
     w1 = unc.ufloat(weighted_avg, weighted_std)
     return w1
 
-# algemene functie die een korte strijdigheidsanalyse uitvoert op basis van de 2 sigma criterium
+# algemene functie die een korte strijdigheidsanalyse uitvoert op basis van het 2 sigma criterium
 def conflict_analysis(data, ref):
     delta = abs(ref.n - data.n)
     delta_sig = (ref.s**2 + data.s**2)**0.5
@@ -366,16 +368,16 @@ def red_chi2(data, ref):
     red_chi2 = chi2 / (len(data) - 1)
     return red_chi2
 
-# functie om de w1 metingen en beste schatter te plotten met de theoretische waarde
-def plot_w1(w1s, best_guess):
+# functie om de w1 metingen en beste schatter te plotten met een referentie waarde
+def plot_w1(w1s, best_guess, ref=w1_theorie):
     w1_n = unp.nominal_values(w1s)
     w1_s = unp.std_devs(w1s)
     metingen = np.arange(len(w1s))
     plt.figure()
-    plt.hlines(w1_theorie.n, xmin = -1, xmax = len(w1s)+1, color='r', label=r'$\omega_1$')
-    plt.fill_between([-1, len(w1s)+1], w1_theorie.n - w1_theorie.s, w1_theorie.n + w1_theorie.s, color='r', alpha=0.2, label=r'$\omega_1 \pm \sigma$')
-    plt.fill_between([-1, len(w1s)+1], w1_theorie.n + w1_theorie.s, w1_theorie.n + 2*w1_theorie.s, color='r', alpha=0.1, label=r'$\omega_1 \pm 2\sigma$')
-    plt.fill_between([-1, len(w1s)+1], w1_theorie.n - w1_theorie.s, w1_theorie.n - 2*w1_theorie.s, color='r', alpha=0.1)
+    plt.hlines(ref.n, xmin = -1, xmax = len(w1s)+1, color='r', label=r'$\omega_1$')
+    plt.fill_between([-1, len(w1s)+1], ref.n - ref.s, ref.n + ref.s, color='r', alpha=0.2, label=r'$\omega_1 \pm \sigma$')
+    plt.fill_between([-1, len(w1s)+1], ref.n + ref.s, ref.n + 2*ref.s, color='r', alpha=0.1, label=r'$\omega_1 \pm 2\sigma$')
+    plt.fill_between([-1, len(w1s)+1], ref.n - ref.s, ref.n - 2*ref.s, color='r', alpha=0.1)
     plt.hlines(best_guess.n, xmin = -1, xmax = len(w1s)+1, color='b', label=r'$\overline{\omega}_{1}$')
     plt.fill_between([-1, len(w1s)+1], best_guess.n - best_guess.s, best_guess.n + best_guess.s, color='b', alpha=0.2, label=r'$\overline{\omega}_{1} \pm \hat{\sigma}$')
     plt.fill_between([-1, len(w1s)+1], best_guess.n + best_guess.s, best_guess.n + 2*best_guess.s, color='b', alpha=0.1, label=r'$\overline{\omega}_{1} \pm 2\hat{\sigma}$')
@@ -389,6 +391,7 @@ def plot_w1(w1s, best_guess):
     plt.tight_layout(rect=[0, 0, 0.95, 1])
     plt.show()
 
+# directory en output bestand instellen
 loc = os.path.dirname(__file__)
 os.chdir(loc)
 fname = 'output.txt'
@@ -403,7 +406,7 @@ phys_data = convert_video_data_to_physical(raw_data_unc, pixel_scale, fps)
 angle_data = add_angle_data(phys_data, l)
 # De data gescheiden per video
 data_per_video = get_data_per_video(angle_data)
-# Verzamel alle fit parameters per tn
+# Verzamel alle fit parameters voor elke t in tn, na uitvoeren van plot en fit
 fit_params = plot_and_fit_theta_vs_theta0(data_per_video)
 # Alle schattingen van w1 op basis van de fits
 w1s = collect_w1s(fit_params)
@@ -413,7 +416,7 @@ w1 = get_best_weighted_guess(w1s)
 strijdig = conflict_analysis(w1, w1_theorie)
 # Bereken de gereduceerde chi2 van de w1 metingen ten opzichte van de theoretische waarde
 red_chi2_w1 = red_chi2(w1s, w1_theorie)
-# Plot de verzamelde w1 schattingen met de theoretische waarde
+# Plot de verzamelde w1 schattingen met de beste schatter en de theoretische waarde
 plot_w1(w1s, w1)
 
 print(f'w1 theorie: {w1_theorie}')
