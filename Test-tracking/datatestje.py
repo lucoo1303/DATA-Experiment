@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import uncertainties as unc
 from uncertainties import unumpy as unp
 import os
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 # gemeten constanten met onzekerheden en tags
@@ -24,40 +27,71 @@ k = unc.ufloat((m_veer*g/u).n, (m_veer*g/u).s, 'veerconstante')
 # theoretische hoeksnelheid met onzekerheden
 w1_theorie = unp.sqrt((m*l*g + M*L*g/2)/I)
 
+# Camera eigenschappen:
+fps = 240
+pixel_width = 512 # in pixels
+pixel_pos_unc = 1.0 # onzekerheid in pixel positie 
+frame_unc = 0.5 # onzekerheid in frame nummer 
+frame_width = unc.ufloat(68.2, 0.1, 'frame breedte')*0.01 # in m
+pixel_scale = frame_width / pixel_width # m per pixel
+
+# Functie voegt onzekerheden toe aan data dmv een uarray
+def add_uncertainties_to_data(data, sig_f, sig_x, sig_y):
+    frame_u = unp.uarray(data[:, 0], sig_f)
+    x_u = unp.uarray(data[:, 1], sig_x)
+    y_u = unp.uarray(data[:, 2], sig_y)
+    return np.column_stack((frame_u, x_u, y_u))
+
+# Functie zet video data om naar fysieke data
+def convert_video_data_to_physical(data, pixel_scale, fps):
+    t = convert_frame_to_time(data[:,0], fps)
+    x = convert_pixel_to_physical(data[:,1], pixel_scale)
+    y = convert_pixel_to_physical(data[:,2], pixel_scale)
+    return np.column_stack((t, x, y))
+    
+# Functie zet frame nummer om naar tijd op basis van fps
+def convert_frame_to_time(frame_no, fps):
+    return frame_no / fps
+
+# Functie zet pixelpositie om naar fysieke positie op basis van schaal
+def convert_pixel_to_physical(pixel_value, pixel_scale):
+    return pixel_value * pixel_scale
+
 # Functie om data per video te scheiden
-def get_data_per_video(raw_data):
+def get_data_per_video(data):
     seperated_data = []
     video_data = []
-    for i in range(len(raw_data)):
-        frame_no = raw_data[i][0]
+    for i in range(len(data)):
+        frame_no = data[i][0]
         if frame_no == 0 and i != 0: # Nieuw filmpje begonnen, want frame nummer is 0
             seperated_data.append(np.array(video_data))
             video_data = []
-        video_data.append(raw_data[i])
+        video_data.append(data[i])
     video_data = np.array(video_data)
     seperated_data.append(video_data)
     return seperated_data
-
-
-
-
 
 loc = os.path.dirname(__file__)
 os.chdir(loc)
 fname = 'output.txt'
 
+# De data regelrecht uit het databestand
 raw_data = np.genfromtxt(fname, delimiter='\t')
-
-data_per_video = get_data_per_video(raw_data)
+# De data met toegevoegde onzekerheden
+raw_data_unc = add_uncertainties_to_data(raw_data, frame_unc, pixel_pos_unc, pixel_pos_unc)
+# De data omgezet naar fysieke eenheden (dus frame nummer -> seconde, pixel -> meter)
+phys_data = convert_video_data_to_physical(raw_data_unc, pixel_scale, fps)
+# De data gescheiden per video
+data_per_video = get_data_per_video(phys_data)
 
 data_vid0 = data_per_video[0]
 data_vid1 = data_per_video[1]
 
-frame_no_vid0 = data_vid0[:,0]
-x_vid0 = data_vid0[:,1]
-y_vid0 = data_vid0[:,2]
+# frame_no_vid0 = data_vid0[:,0]
+# x_vid0 = data_vid0[:,1]
+# y_vid0 = data_vid0[:,2]
 
-plt.figure()
-plt.plot(frame_no_vid0, x_vid0, 'k.')
-plt.title('x-positie met offset (gelezen) (pixel)')
-plt.show()
+# plt.figure()
+# plt.plot(frame_no_vid0, x_vid0, 'k.')
+# plt.title('x-positie met offset (gelezen) (pixel)')
+# plt.show()

@@ -53,7 +53,10 @@ output_path = directory + filename_data
 header_text = 'Exilim, slinger, 240 fps, 512x384 px, 17-01-2026 \n'
 header_text += 'Video: ' + vidname + ' \n'
 header_text += 'Seperate video data is seperated with a new header \n'
-header_text += 'frame nummer                x (px)                       y (px)'
+header_text += 'Uncertainty in frame number: approx. 2.85 ms, approx 1/2 frame \n'
+header_text += 'Uncertainty in position: 1 pixel \n'
+header_text += 'Columns: \n'
+header_text += 'frame number                x (px)                       y (px)'
 
 
 verwijder_oude_data = input('Verwijder oude data? y/n ')
