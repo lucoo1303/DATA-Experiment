@@ -28,7 +28,7 @@ k = unc.ufloat((m_veer*g/u).n, (m_veer*g/u).s, 'veerconstante')
 w1_theorie = unp.sqrt((m*l*g + M*L*g/2)/I)
 
 # tijdstippen waar ik de data wil evalueren 
-tn = np.arange(1, 2, 0.5)
+tn = np.arange(1, 6, 0.5)
 
 # Camera eigenschappen:
 fps = 240
