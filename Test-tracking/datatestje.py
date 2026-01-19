@@ -35,6 +35,10 @@ frame_unc = 0.5 # onzekerheid in frame nummer
 frame_width = unc.ufloat(68.2, 0.1, 'frame breedte')*0.01 # in m
 pixel_scale = frame_width / pixel_width # m per pixel
 
+# Functie om uitwijking (in x-positie) om te zetten naar hoek in radialen
+def delection_to_angle(deflection, length):
+    return unp.arcsin(deflection / length)
+
 # Functie voegt onzekerheden toe aan data dmv een uarray
 def add_uncertainties_to_data(data, sig_f, sig_x, sig_y):
     frame_u = unp.uarray(data[:, 0], sig_f)
@@ -71,22 +75,29 @@ def get_data_per_video(data):
     seperated_data.append(video_data)
     return seperated_data
 
+def add_angle_data(data, length):
+    angle = delection_to_angle(data[:,1], length)
+    return np.column_stack((data, angle))
+
 # Functie om de data van een specifieke video te plotten
 def plot_vid_data(data, vid_num):
     vid = data[vid_num]
     t = vid[:,0]
     x = vid[:,1]
     y = vid[:,2]
+    theta = vid[:,3]
 
     # de nominale waardes
     t_n = unp.nominal_values(t)
     x_n = unp.nominal_values(x)
     y_n = unp.nominal_values(y)
+    theta_n = unp.nominal_values(theta)
 
     # de onzekerheden
     t_s = unp.std_devs(t)
     x_s = unp.std_devs(x)
     y_s = unp.std_devs(y)
+    theta_s = unp.std_devs(theta)
 
     plt.figure()
     plt.errorbar(t_n, x_n, xerr=t_s, yerr=x_s, fmt='.')
@@ -109,6 +120,20 @@ def plot_vid_data(data, vid_num):
     plt.ylabel('y positie (m)')
     plt.show()
 
+    plt.figure()
+    plt.errorbar(x_n, theta_n, xerr=x_s, yerr=theta_s, fmt='.')
+    plt.title(f'Video {vid_num}: hoek tegen x positie')
+    plt.xlabel('x positie (m)')
+    plt.ylabel('hoek (rad)')
+    plt.show()
+
+    plt.figure()
+    plt.errorbar(t_n, theta_n, xerr=t_s, yerr=theta_s, fmt='.')
+    plt.title(f'Video {vid_num}: hoek tegen tijd')
+    plt.xlabel('tijd (s)')
+    plt.ylabel('hoek (rad)')
+    plt.show()
+
 
 loc = os.path.dirname(__file__)
 os.chdir(loc)
@@ -120,7 +145,10 @@ raw_data = np.genfromtxt(fname, delimiter='\t')
 raw_data_unc = add_uncertainties_to_data(raw_data, frame_unc, pixel_pos_unc, pixel_pos_unc)
 # De data omgezet naar fysieke eenheden (dus frame nummer -> seconde, pixel -> meter)
 phys_data = convert_video_data_to_physical(raw_data_unc, pixel_scale, fps)
+# Data with angle
+angle_data = add_angle_data(phys_data, l)
 # De data gescheiden per video
-data_per_video = get_data_per_video(phys_data)
+data_per_video = get_data_per_video(angle_data)
 
 plot_vid_data(data_per_video, 0)
+#plot_vid_data(data_per_video, 1)
