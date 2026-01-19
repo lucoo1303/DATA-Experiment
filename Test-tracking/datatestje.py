@@ -237,7 +237,7 @@ def plot_single_tn(ax, x, y, n):
 
     ax.errorbar(x_n, y_n, xerr=x_s, yerr=y_s, fmt='.', label=fr'$t_{{{n}}}={tn[n]}$')
 
-# functie om een fit voor een specifieke tn uit te voeren
+# functie om een fit voor een specifieke tn uit te voeren, fit code gekopieerd van het bijgegeven fit script
 def fit_single_tn(ax, x, y, n):
     x_n = unp.nominal_values(x)
     y_n = unp.nominal_values(y)
@@ -341,34 +341,53 @@ def collect_w1s(fit_params):
         w1_stds.append(w1.s)
     return unp.uarray(w1_noms, w1_stds)
 
-def plot_w1(w1s):
-    w1_n = unp.nominal_values(w1s)
-    w1_s = unp.std_devs(w1s)
-    metingen = np.arange(len(w1s))
-    plt.figure()
-    plt.hlines(w1_theorie.n, xmin = 0, xmax = len(w1s)-1, color='r', label=r'$\omega_1$')
-    plt.fill_between([-1, len(w1s)], w1_theorie.n - w1_theorie.s, w1_theorie.n + w1_theorie.s, color='r', alpha=0.2, label=r'$\omega_1 + \sigma$')
-    plt.fill_between([0, len(w1s)-1], w1_theorie.n + w1_theorie.s, w1_theorie.n + 2*w1_theorie.s, color='r', alpha=0.1, label=r'$\omega_1 + 2\sigma$')
-    plt.fill_between([0, len(w1s)-1], w1_theorie.n - w1_theorie.s, w1_theorie.n - 2*w1_theorie.s, color='r', alpha=0.1)
-    plt.errorbar(metingen, w1_n, yerr=w1_s, fmt='.', label=r'$\omega_1$ metingen')
-    plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
-    plt.title(r'Schattingen van $\omega_1$ uit verschillende metingen')
-    plt.xlabel('meting')
-    plt.ylabel(r'$\omega_1$ (rad/s)')
-    plt.xlim(0, len(w1s)-1)
-    plt.tight_layout(rect=[0, 0, 0.95, 1])
-    plt.show()
-
-# functie om de beste gewogen schatter voor w1 te krijgen
-def get_best_weighted_w1_guess(w1s):
-    noms = unp.nominal_values(w1s)
-    stds = unp.std_devs(w1s)
+# algemene functie om de beste gewogen schatter voor een dataset te krijgen
+def get_best_weighted_guess(data):
+    noms = unp.nominal_values(data)
+    stds = unp.std_devs(data)
     weights = 1 / (stds**2)
     weighted_avg = np.sum(noms * weights) / np.sum(weights)
     weighted_std = np.sqrt(1 / np.sum(weights))
     w1 = unc.ufloat(weighted_avg, weighted_std)
     return w1
 
+# algemene functie die een korte strijdigheidsanalyse uitvoert op basis van de 2 sigma criterium
+def conflict_analysis(data, ref):
+    delta = abs(ref.n - data.n)
+    delta_sig = (ref.s**2 + data.s**2)**0.5
+    conflict = delta > 2*delta_sig
+    return conflict
+
+# algemene functie die de gereduceerde chi2 berekent van data ten opzichte van een referentiewaarde
+def red_chi2(data, ref):
+    noms = unp.nominal_values(data)
+    stds = unp.std_devs(data)
+    chi2 = np.sum(((noms - ref.n)**2) / (stds**2 + ref.s**2))
+    red_chi2 = chi2 / (len(data) - 1)
+    return red_chi2
+
+# functie om de w1 metingen en beste schatter te plotten met de theoretische waarde
+def plot_w1(w1s, best_guess):
+    w1_n = unp.nominal_values(w1s)
+    w1_s = unp.std_devs(w1s)
+    metingen = np.arange(len(w1s))
+    plt.figure()
+    plt.hlines(w1_theorie.n, xmin = -1, xmax = len(w1s)+1, color='r', label=r'$\omega_1$')
+    plt.fill_between([-1, len(w1s)+1], w1_theorie.n - w1_theorie.s, w1_theorie.n + w1_theorie.s, color='r', alpha=0.2, label=r'$\omega_1 \pm \sigma$')
+    plt.fill_between([-1, len(w1s)+1], w1_theorie.n + w1_theorie.s, w1_theorie.n + 2*w1_theorie.s, color='r', alpha=0.1, label=r'$\omega_1 \pm 2\sigma$')
+    plt.fill_between([-1, len(w1s)+1], w1_theorie.n - w1_theorie.s, w1_theorie.n - 2*w1_theorie.s, color='r', alpha=0.1)
+    plt.hlines(best_guess.n, xmin = -1, xmax = len(w1s)+1, color='b', label=r'$\overline{\omega}_{1}$')
+    plt.fill_between([-1, len(w1s)+1], best_guess.n - best_guess.s, best_guess.n + best_guess.s, color='b', alpha=0.2, label=r'$\overline{\omega}_{1} \pm \hat{\sigma}$')
+    plt.fill_between([-1, len(w1s)+1], best_guess.n + best_guess.s, best_guess.n + 2*best_guess.s, color='b', alpha=0.1, label=r'$\overline{\omega}_{1} \pm 2\hat{\sigma}$')
+    plt.fill_between([-1, len(w1s)+1], best_guess.n - best_guess.s, best_guess.n - 2*best_guess.s, color='b', alpha=0.1)
+    plt.errorbar(metingen, w1_n, yerr=w1_s, fmt='.', label=r'$\omega_1$ metingen')
+    plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
+    plt.title(r'$\omega_1$ analyse')
+    plt.xlabel('meting')
+    plt.ylabel(r'$\omega_1$ (rad/s)')
+    plt.xlim(0, len(w1s))
+    plt.tight_layout(rect=[0, 0, 0.95, 1])
+    plt.show()
 
 loc = os.path.dirname(__file__)
 os.chdir(loc)
@@ -388,9 +407,16 @@ data_per_video = get_data_per_video(angle_data)
 fit_params = plot_and_fit_theta_vs_theta0(data_per_video)
 # Alle schattingen van w1 op basis van de fits
 w1s = collect_w1s(fit_params)
-# Plot de verzamelde w1 schattingen met de theoretische waarde
-plot_w1(w1s)
 # De beste schatter voor w1 op basis van gewogen gemiddelde
-w1 = get_best_weighted_w1_guess(w1s)
+w1 = get_best_weighted_guess(w1s)
+# Check of de beste schatter strijdig is met de theoretische waarde
+strijdig = conflict_analysis(w1, w1_theorie)
+# Bereken de gereduceerde chi2 van de w1 metingen ten opzichte van de theoretische waarde
+red_chi2_w1 = red_chi2(w1s, w1_theorie)
+# Plot de verzamelde w1 schattingen met de theoretische waarde
+plot_w1(w1s, w1)
 
-print(w1, w1_theorie)
+print(f'w1 theorie: {w1_theorie}')
+print(f'w1 gemeten: {w1}')
+print(f'Strijdig: {strijdig}')
+print(f'Red chi2: {red_chi2_w1}')
