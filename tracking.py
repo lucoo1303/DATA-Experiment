@@ -69,14 +69,6 @@ def track_video(vid_num):
         with open(output_path, "r+") as f:
             f.seek(0)
             f.truncate()
-            
-    write_header = True
-
-    # Checken of er al een header staat of niet
-    with open(output_path, 'r') as f:
-        first_line = f.readline()
-        if first_line.startswith('#'):
-            write_header = False
 
     # Beschikbare trackers (OpenCV 4.13)
 
@@ -303,12 +295,13 @@ def track_video(vid_num):
 
 # instellingen voor loop videotracking
 vid_amount = 25
-indices = np.arange(6,vid_amount + 1)
+# alle video's:
+indices = np.arange(1,vid_amount + 1)
+# specifieke video's:
+#indices = []
 # track achter elkaar alle video's
 for i in indices:
     track_video(i)
-    print(f'laatst getrackte vide: vid{i}.MOV')
-
-
+    print(f'laatst getrackte video: vid{i}.MOV')
 
 
