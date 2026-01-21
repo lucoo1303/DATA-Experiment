@@ -24,277 +24,290 @@ import matplotlib.pyplot as plt
 import cv2
 import os
 
-#%% Algemene instellingen (zelf aan te passen)
-
-# Als je tussentijds trackingresultaten en trackingoutput wilt laten zien, 
-# dan zet je show op 1. Zonder plotten is sneller, maar met plotten geeft 
-# de gelegenheid om tracking te checken (handig in de testfase)
-show = 1
-
-### Instellen bestandslocatie
-# loc = 'C:/Temp' # Kan eventueel handmatig
-# Onderstaande regels zetten de hoofddirectory gelijk aan de locatie van dit script
-loc = os.path.dirname(__file__)
-os.chdir(loc)
-
-# Locatie video
-directory = 'Videos/'
-# Naam video
-#vidname = 'slinger.MP4' # GoPro
-vidname = 'testvid2.MOV' # Exilim
-
-# Directory om resultaten weg te schrijven 
-dir_write = 'Data/'
-# Dit is de naam van het databestand waar de locaties van het object worden weggeschreven
-filename_data = 'output.txt'
-output_path = directory + filename_data
-# Deze tekst wordt in de header van je databestand gezet
-# Zo heb je context bij de inhoud van het databestand
-header_text = 'Exilim, slinger, 240 fps, 512x384 px, 17-01-2026 \n'
-header_text += 'Video: ' + vidname + ' \n'
-header_text += 'Seperate video data is seperated with a new header \n'
-header_text += 'Uncertainty in frame number: approx. 2.85 ms, approx 1/2 frame \n'
-header_text += 'Uncertainty in position: 1 pixel \n'
-header_text += 'Columns: \n'
-header_text += 'frame number                x (px)                       y (px)'
 
 
-verwijder_oude_data = input('Verwijder oude data? y/n ')
+def track_video(vid_num):
+    # Algemene instellingen (zelf aan te passen)
 
-# Eventuele oudere data verwijderen voordat er nieuwe wordt bijgeschreven
-if verwijder_oude_data == 'y':
-    with open(output_path, "r+") as f:
-        f.seek(0)
-        f.truncate()
-        
-write_header = True
+    # Als je tussentijds trackingresultaten en trackingoutput wilt laten zien, 
+    # dan zet je show op 1. Zonder plotten is sneller, maar met plotten geeft 
+    # de gelegenheid om tracking te checken (handig in de testfase)
+    show = 1
 
-# Checken of er al een header staat of niet
-with open(output_path, 'r') as f:
-    first_line = f.readline()
-    if first_line.startswith('#'):
-        write_header = False
+    ### Instellen bestandslocatie
+    # loc = 'C:/Temp' # Kan eventueel handmatig
+    # Onderstaande regels zetten de hoofddirectory gelijk aan de locatie van dit script
+    loc = os.path.dirname(__file__)
+    os.chdir(loc)
 
-#%% Beschikbare trackers (OpenCV 4.13)
+    # Locatie video
+    directory_video = 'Videos/'
+    # Naam video
+    #vidname = 'slinger.MP4' # GoPro
+    vidname = f'vid{vid_num}.MOV' # Exilim
 
-# Trackers worden in volgende link kort beschreven
-# https://docs.opencv.org/4.x/javadoc/org/opencv/video/Tracker.html
-trackerTypes = ['CSRT', 'DaSiamRPN', 'GOTURN','KCF', 'MIL', 'Nano', 'Vit']
- 
-def createTrackerByName(trackerType):
-  # Create a tracker based on tracker name
-  if trackerType == trackerTypes[0]:
-    tracker = cv2.TrackerCSRT_create()
-  elif trackerType == trackerTypes[1]:
-    tracker = cv2.TrackerDaSiamRPN_create()
-  elif trackerType == trackerTypes[2]:
-    tracker = cv2.TrackerGOTURN_create()
-  elif trackerType == trackerTypes[3]:
-    tracker = cv2.TrackerKCF_create()
-  elif trackerType == trackerTypes[4]:
-    tracker = cv2.TrackerMIL_create()
-  elif trackerType == trackerTypes[5]:
-    tracker = cv2.TrackerNano_create()
-  elif trackerType == trackerTypes[6]:
-    tracker = cv2.TrackerVit_create()
-  else:
-    tracker = None
-    print('Incorrect tracker name')
-    print('Available trackers are:')
-    for t in trackerTypes:
-      print(t)
- 
-  return tracker
+    # Directory om resultaten weg te schrijven 
+    dir_write = 'Data/'
+    # Dit is de naam van het databestand waar de locaties van het object worden weggeschreven
+    filename_data = 'output.txt'
+    output_path = dir_write + filename_data
+    # Deze tekst wordt in de header van je databestand gezet
+    # Zo heb je context bij de inhoud van het databestand
+    header_text = 'Exilim, slinger, 240 fps, 512x384 px, 17-01-2026 \n'
+    header_text += 'Video: ' + vidname + ' \n'
+    header_text += 'Seperate video data is seperated with a new header \n'
+    header_text += 'Uncertainty in frame number: approx. 2.85 ms, approx 1/2 frame \n'
+    header_text += 'Uncertainty in position: 1 pixel \n'
+    header_text += 'Columns: \n'
+    header_text += 'frame number                x (px)                       y (px)'
 
-# CSRT en KCF blijken in tests snel en betrouwbaar
-tracker = createTrackerByName('CSRT')
 
-#%% Openen video en plotten eerste frame
+    verwijder_oude_data = input('Verwijder oude data? y/n ')
 
-# Video-locatie
-video = directory + vidname
-# Open video-kanaal
-cap = cv2.VideoCapture(video)
+    # Eventuele oudere data verwijderen voordat er nieuwe wordt bijgeschreven
+    if verwijder_oude_data == 'y':
+        with open(output_path, "r+") as f:
+            f.seek(0)
+            f.truncate()
+            
+    write_header = True
 
-# Meta-informatie
-# Total aantal frames
-Nframes = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-# Frames per second (fps) !!! niet correct for Exilim, stel handmatig in
-fps = cap.get(cv2.CAP_PROP_FPS)
-#fps = 240
+    # Checken of er al een header staat of niet
+    with open(output_path, 'r') as f:
+        first_line = f.readline()
+        if first_line.startswith('#'):
+            write_header = False
 
-### Analyse eerste frame
-# Found is een boolean die aangeeft of het frame er is, frame zelf is BGR-data
-found,frame = cap.read()
-if not found:
-  print('Failed to read video')
+    # Beschikbare trackers (OpenCV 4.13)
 
-# Dimensies van array (ny rij, nx kolom)
-(ny,nx,nc) = np.array(frame).shape
+    # Trackers worden in volgende link kort beschreven
+    # https://docs.opencv.org/4.x/javadoc/org/opencv/video/Tracker.html
+    trackerTypes = ['CSRT', 'DaSiamRPN', 'GOTURN','KCF', 'MIL', 'Nano', 'Vit']
+     
+    def createTrackerByName(trackerType):
+      # Create a tracker based on tracker name
+      if trackerType == trackerTypes[0]:
+        tracker = cv2.TrackerCSRT_create()
+      elif trackerType == trackerTypes[1]:
+        tracker = cv2.TrackerDaSiamRPN_create()
+      elif trackerType == trackerTypes[2]:
+        tracker = cv2.TrackerGOTURN_create()
+      elif trackerType == trackerTypes[3]:
+        tracker = cv2.TrackerKCF_create()
+      elif trackerType == trackerTypes[4]:
+        tracker = cv2.TrackerMIL_create()
+      elif trackerType == trackerTypes[5]:
+        tracker = cv2.TrackerNano_create()
+      elif trackerType == trackerTypes[6]:
+        tracker = cv2.TrackerVit_create()
+      else:
+        tracker = None
+        print('Incorrect tracker name')
+        print('Available trackers are:')
+        for t in trackerTypes:
+          print(t)
+     
+      return tracker
 
-# Plot van eerste frane voor calibratie (wordt voor de zekerheid ook weggeschreven)
-plt.figure('Calibratie')
-plt.imshow(np.flip(frame,axis=2))
-#plt.savefig('frame1.pdf')
-plt.savefig('frame1.png',dpi=300)
+    # CSRT en KCF blijken in tests snel en betrouwbaar
+    tracker = createTrackerByName('CSRT')
 
-#%% Selectie van object
+    # Openen video en plotten eerste frame
 
-bboxes = []
-'''
-Bepaal de bounding box van het object. Tip: trek de bounding box strak 
-om het object, maar met enige marge zodat het hele object in de box past.
-Door een willekeurige toets in te drukken (bv Enter) wordt de bounding box 
-vastgelegd. 
-'''
-bbox = cv2.selectROI('Positie object', frame)
-bboxes.append(list(bbox))
+    # Video-locatie
+    video = directory_video + vidname
+    # Open video-kanaal
+    cap = cv2.VideoCapture(video)
 
-#%% Hier vindt de eigenlijke tracking plaats
+    # Meta-informatie
+    # Total aantal frames
+    Nframes = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    # Frames per second (fps) !!! niet correct for Exilim, stel handmatig in
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    #fps = 240
 
-cv2.destroyWindow("Positie object")
-
-tracker.init(frame,bbox)
-nframe = 0
-
-def draw_bounding_box(bounding_box, frame):
-    x, y, w, h = bounding_box
-    cv2.rectangle(frame, (int(x), int(y)), (int(x + w), int(y + h)), (0, 255, 0), 2, 2)
-    return frame
-
-while cap.isOpened():
-    print('frame ' + str(nframe))
-    bboxes.append(list(bbox))
-    
-    found, frame = cap.read()
+    ### Analyse eerste frame
+    # Found is een boolean die aangeeft of het frame er is, frame zelf is BGR-data
+    found,frame = cap.read()
     if not found:
-        break
-    
-    found_object, bbox = tracker.update(frame)
-    if show == 1:
-        frame = draw_bounding_box(bbox, frame)
-        cv2.imshow("Object location", frame)
-        cv2.waitKey(1)
-    nframe += 1  
+      print('Failed to read video')
+
+    # Dimensies van array (ny rij, nx kolom)
+    (ny,nx,nc) = np.array(frame).shape
+
+    # Plot van eerste frane voor calibratie (wordt voor de zekerheid ook weggeschreven)
+    plt.figure('Calibratie')
+    plt.imshow(np.flip(frame,axis=2))
+    #plt.savefig('frame1.pdf')
+    plt.savefig('frame1.png',dpi=300)
+
+    # Selectie van object
+
+    bboxes = []
+    '''
+    Bepaal de bounding box van het object. Tip: trek de bounding box strak 
+    om het object, maar met enige marge zodat het hele object in de box past.
+    Door een willekeurige toets in te drukken (bv Enter) wordt de bounding box 
+    vastgelegd. 
+    '''
+    bbox = cv2.selectROI('Positie object', frame)
+    bboxes.append(list(bbox))
+
+    #Hier vindt de eigenlijke tracking plaats
+
+    cv2.destroyWindow("Positie object")
+
+    tracker.init(frame,bbox)
+    nframe = 0
+
+    def draw_bounding_box(bounding_box, frame):
+        x, y, w, h = bounding_box
+        cv2.rectangle(frame, (int(x), int(y)), (int(x + w), int(y + h)), (0, 255, 0), 2, 2)
+        return frame
+
+    while cap.isOpened():
+        print('frame ' + str(nframe))
+        bboxes.append(list(bbox))
+        
+        found, frame = cap.read()
+        if not found:
+            break
+        
+        found_object, bbox = tracker.update(frame)
+        if show == 1:
+            frame = draw_bounding_box(bbox, frame)
+            cv2.imshow("Object location", frame)
+            cv2.waitKey(1)
+        nframe += 1  
 
 
-# Alternatief voor plotten
-# if show==1:
-#     h.set_data(mask)
-#     # Redraw
-#     plt.draw()
-#     # Pause om tijd te creëren voor update
-#     plt.pause(0.1)
+    # Alternatief voor plotten
+    # if show==1:
+    #     h.set_data(mask)
+    #     # Redraw
+    #     plt.draw()
+    #     # Pause om tijd te creëren voor update
+    #     plt.pause(0.1)
 
-#%% data ophalen en snijden
+    # data ophalen en snijden
 
-# Omrekenen bounding box naar x- en y-positie van midden van bounding box
-pos = np.zeros((len(bboxes),2))
-for n in np.arange(len(bboxes)):
-    pos[n,0] = bboxes[n][0] + bboxes[n][2]/2
-    pos[n,1] = bboxes[n][1] + bboxes[n][3]/2
+    # Omrekenen bounding box naar x- en y-positie van midden van bounding box
+    pos = np.zeros((len(bboxes),2))
+    for n in np.arange(len(bboxes)):
+        pos[n,0] = bboxes[n][0] + bboxes[n][2]/2
+        pos[n,1] = bboxes[n][1] + bboxes[n][3]/2
 
-x = pos[:,0]
-y = pos[:,1]
-
-# Schat ruwweg het moment waarop de slinger in de video wordt losgelaten
-def get_index_of_release(x):
-    # Vind de maximale (start)uitwijking
-    abs_max = np.max(np.abs(x))
-    i = 0
-    # Doorloop de video tot het punt waarop de uitwijking ongeveer gelijk is aan de max
-    while np.abs(x[i]) < 0.95*abs_max:
-        i += 1
-    # De slinger zit nu ongeveer op de startpositie
-    jump = 10
-    # Doorloop nu de video totdat de uitwijking ietsjes later in de video
-    # signifant kleiner is, dat is ongeveer het punt van loslaten
-    while np.abs(x[i+jump]) > 0.95*np.abs(x[i]) and i < len(x) - jump - 1:
-        i += 1
-    return i
-
-# Functie om de data om te zetten naar standaard cartesische coordinaten, met
-# de assen gecentreerd op de neutrale positie
-def correct_data(pos):
     x = pos[:,0]
-    y = 384 - pos[:,1]
-    return np.array([x - x[0], y - y[0]]).T
+    y = pos[:,1]
 
-# Corrigeer de data naar simpelere assen
-pos_offset = correct_data(pos)
-x_offset = pos_offset[:,0]
-y_offset = pos_offset[:,1]
+    # Schat ruwweg het moment waarop de slinger in de video wordt losgelaten
+    def get_index_of_release(x):
+        # Vind de maximale (start)uitwijking
+        abs_max = np.max(np.abs(x))
+        i = 0
+        # Doorloop de video tot het punt waarop de uitwijking ongeveer gelijk is aan de max
+        while np.abs(x[i]) < 0.95*abs_max:
+            i += 1
+        # De slinger zit nu ongeveer op de startpositie
+        jump = 10
+        # Doorloop nu de video totdat de uitwijking ietsjes later in de video
+        # signifant kleiner is, dat is ongeveer het punt van loslaten
+        while np.abs(x[i+jump]) > 0.95*np.abs(x[i]) and i < len(x) - jump - 1:
+            i += 1
+        return i
 
-index_of_release = get_index_of_release(x_offset) # ongeveer frame 1800 bij testvid4.MOV
+    # Functie om de data om te zetten naar standaard cartesische coordinaten, met
+    # de assen gecentreerd op de neutrale positie
+    def correct_data(pos):
+        x = pos[:,0]
+        y = 384 - pos[:,1]
+        return np.array([x - x[0], y - y[0]]).T
 
-# Pak alleen de relevante data (na loslaten slinger)
-x_data = x_offset[index_of_release:]
-y_data = y_offset[index_of_release:]
-frame_data = np.arange(len(x_data))
+    # Corrigeer de data naar simpelere assen
+    pos_offset = correct_data(pos)
+    x_offset = pos_offset[:,0]
+    y_offset = pos_offset[:,1]
 
-#%% plotten
+    index_of_release = get_index_of_release(x_offset) # ongeveer frame 1800 bij testvid4.MOV
 
-### Plots van resultaten (je kunt deze met plt.savefig ook wegschrijven voor in je labjournaal)
+    # Pak alleen de relevante data (na loslaten slinger)
+    x_data = x_offset[index_of_release:]
+    y_data = y_offset[index_of_release:]
+    frame_data = np.arange(len(x_data))
 
-# Plots van onbewerkte data
+    # plotten
 
-plt.figure()
-plt.plot(x,'k.')
-plt.title('onbewerkte x-positie (pixel)')
-plt.vlines(x=index_of_release, ymin=0, ymax=500)
-plt.show()
+    ### Plots van resultaten (je kunt deze met plt.savefig ook wegschrijven voor in je labjournaal)
 
-plt.figure()
-plt.plot(y,'k.')
-plt.title('onbewerkte y-positie (pixel)')
-plt.show()
+    # Plots van onbewerkte data
 
-plt.figure()
-plt.plot(x,y,'k.')
-plt.xlim(0,nx)
-plt.ylim(ny,0)
-plt.title('onbewerkte y-positie tegen onbewerkte x-positie (pixel)')
-plt.show()
+    plt.figure()
+    plt.plot(x,'k.')
+    plt.title('onbewerkte x-positie (pixel)')
+    plt.vlines(x=index_of_release, ymin=0, ymax=500)
+    plt.show()
 
-# Plots van gecorrigeerde data
+    plt.figure()
+    plt.plot(y,'k.')
+    plt.title('onbewerkte y-positie (pixel)')
+    plt.show()
 
-plt.figure()
-plt.plot(x_data,'k.')
-plt.title('gecorrigeerde x-positie (pixel)')
-plt.show()
+    plt.figure()
+    plt.plot(x,y,'k.')
+    plt.xlim(0,nx)
+    plt.ylim(ny,0)
+    plt.title('onbewerkte y-positie tegen onbewerkte x-positie (pixel)')
+    plt.show()
 
-plt.figure()
-plt.plot(y_data,'k.')
-plt.title('gecorrigeerde y-positie (pixel)')
-plt.show()
+    # Plots van gecorrigeerde data
 
-plt.figure()
-plt.plot(x_data,y_data,'k.')
-plt.ylim(-100, 100)
-plt.title('gecorrigeerde y-positie tegen x-positie (pixel)')
-plt.show()
+    plt.figure()
+    plt.plot(x_data,'k.')
+    plt.title('gecorrigeerde x-positie (pixel)')
+    plt.show()
 
-"""
-Tips:
-    1. Je kunt er hier al voor kiezen om niet alle punten weg te schrijven maar 
-    alleen de relevante punten (bijvoorbeeld pos[200:] schrijft alles vanaf frame 
-    200 weg). Dat scheelt later weer in de verwerking. Kies wel dezelfde selectie 
-    voor alle objecten, anders corresponderen de framenummers niet meer.
-    2. Als je het dat-bestand met WordPad opent, kun je de filestructuur zien.
-    Op elke rij staat de positie in elk frame.
-"""
+    plt.figure()
+    plt.plot(y_data,'k.')
+    plt.title('gecorrigeerde y-positie (pixel)')
+    plt.show()
 
-#%% wegschrijven na check data
-# Checken of data goed gesliced is voor wegschrijven, of dat ik opnieuw moet tracken
-# Te zien aan de vline in de onbewerkte x-positie plot
-is_data_correct = input("Data goed gesliced? y/n ")
+    plt.figure()
+    plt.plot(x_data,y_data,'k.')
+    plt.ylim(-100, 100)
+    plt.title('gecorrigeerde y-positie tegen x-positie (pixel)')
+    plt.show()
 
-# Schrijf de data weg als deze goed is gesliced
-if is_data_correct == 'y':
-    data_wegschrijven = np.array([frame_data, x_data, y_data]).T
-    with open(output_path, 'a') as f:
-        np.savetxt(f,data_wegschrijven,delimiter='\t',newline='\n',header=header_text)
+    """
+    Tips:
+        1. Je kunt er hier al voor kiezen om niet alle punten weg te schrijven maar 
+        alleen de relevante punten (bijvoorbeeld pos[200:] schrijft alles vanaf frame 
+        200 weg). Dat scheelt later weer in de verwerking. Kies wel dezelfde selectie 
+        voor alle objecten, anders corresponderen de framenummers niet meer.
+        2. Als je het dat-bestand met WordPad opent, kun je de filestructuur zien.
+        Op elke rij staat de positie in elk frame.
+    """
 
+    # wegschrijven na check data
+    # Checken of data goed gesliced is voor wegschrijven, of dat ik opnieuw moet tracken
+    # Te zien aan de vline in de onbewerkte x-positie plot
+    is_data_correct = input("Data goed gesliced? y/n ")
+
+    # Schrijf de data weg als deze goed is gesliced
+    if is_data_correct == 'y':
+        data_wegschrijven = np.array([frame_data, x_data, y_data]).T
+        with open(output_path, 'a') as f:
+            np.savetxt(f,data_wegschrijven,delimiter='\t',newline='\n',header=header_text)
+
+
+
+
+# instellingen voor loop videotracking
+vid_amount = 25
+indices = np.arange(6,vid_amount + 1)
+# track achter elkaar alle video's
+for i in indices:
+    track_video(i)
+    print(f'laatst getrackte vide: vid{i}.MOV')
 
 
 
