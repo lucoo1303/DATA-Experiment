@@ -38,19 +38,42 @@ loc = os.path.dirname(__file__)
 os.chdir(loc)
 
 # Locatie video
-directory = ''
+directory = 'Videos/'
 # Naam video
-#vidname = 'slinger.MOV' # Exilim
 #vidname = 'slinger.MP4' # GoPro
-vidname = 'testvid4.MOV' # Exilim
+vidname = 'testvid2.MOV' # Exilim
 
 # Directory om resultaten weg te schrijven 
-dir_write = ''
+dir_write = 'Data/'
 # Dit is de naam van het databestand waar de locaties van het object worden weggeschreven
 filename_data = 'output.txt'
+output_path = directory + filename_data
 # Deze tekst wordt in de header van je databestand gezet
 # Zo heb je context bij de inhoud van het databestand
-header_text = 'Exilim, slinger, 240 fps'
+header_text = 'Exilim, slinger, 240 fps, 512x384 px, 17-01-2026 \n'
+header_text += 'Video: ' + vidname + ' \n'
+header_text += 'Seperate video data is seperated with a new header \n'
+header_text += 'Uncertainty in frame number: approx. 2.85 ms, approx 1/2 frame \n'
+header_text += 'Uncertainty in position: 1 pixel \n'
+header_text += 'Columns: \n'
+header_text += 'frame number                x (px)                       y (px)'
+
+
+verwijder_oude_data = input('Verwijder oude data? y/n ')
+
+# Eventuele oudere data verwijderen voordat er nieuwe wordt bijgeschreven
+if verwijder_oude_data == 'y':
+    with open(output_path, "r+") as f:
+        f.seek(0)
+        f.truncate()
+        
+write_header = True
+
+# Checken of er al een header staat of niet
+with open(output_path, 'r') as f:
+    first_line = f.readline()
+    if first_line.startswith('#'):
+        write_header = False
 
 #%% Beschikbare trackers (OpenCV 4.13)
 
@@ -263,13 +286,14 @@ Tips:
 
 #%% wegschrijven na check data
 # Checken of data goed gesliced is voor wegschrijven, of dat ik opnieuw moet tracken
-data_goed = input("Data goed gesliced? y/n ")
+# Te zien aan de vline in de onbewerkte x-positie plot
+is_data_correct = input("Data goed gesliced? y/n ")
 
 # Schrijf de data weg als deze goed is gesliced
-if data_goed == 'y':
+if is_data_correct == 'y':
     data_wegschrijven = np.array([frame_data, x_data, y_data]).T
-    np.savetxt(dir_write + filename_data,data_wegschrijven,delimiter='\t',newline='\n',
-               header=header_text)
+    with open(output_path, 'a') as f:
+        np.savetxt(f,data_wegschrijven,delimiter='\t',newline='\n',header=header_text)
 
 
 
