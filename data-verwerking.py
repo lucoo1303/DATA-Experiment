@@ -30,7 +30,7 @@ w1_theorie = ((m*l*g + M*L*g/2)/I)**0.5
 periode = 2*math.pi / w1_theorie
 
 # tijdstippen waar ik de data wil evalueren 
-tn = np.arange(1, 6, 0.5) % periode.n
+tn = np.arange(1, 6.5, 0.5)
 tn = tn.round(3)
 print(periode, tn)  
 # Camera eigenschappen:
@@ -340,7 +340,7 @@ def collect_w1s(fit_params):
         slope_unc = sig_pars[i][1]
         slope = unc.ufloat(slope_val, slope_unc)
         t = unc.ufloat(tn[i], convert_frame_to_time(frame_unc, fps))
-        w1 = unp.arccos(slope)/t
+        w1 = unp.arccos(slope)/(t%periode)
         w1_noms.append(w1.n)
         w1_stds.append(w1.s)
     return unp.uarray(w1_noms, w1_stds)
@@ -380,7 +380,7 @@ def best_guess_within_percentage(best_guess, percentage, ref=w1_theorie):
 def plot_w1(w1s, best_guess, ref=w1_theorie):
     w1_n = unp.nominal_values(w1s)
     w1_s = unp.std_devs(w1s)
-    metingen = np.arange(len(w1s))
+    metingen = np.arange(len(w1s-1))
     plt.figure()
     plt.hlines(ref.n, xmin = -1, xmax = len(w1s)+1, color='r', label=r'$\omega_1$')
     plt.fill_between([-1, len(w1s)+1], ref.n - ref.s, ref.n + ref.s, color='r', alpha=0.2, label=r'$\omega_1 \pm \sigma$')
@@ -393,9 +393,10 @@ def plot_w1(w1s, best_guess, ref=w1_theorie):
     plt.errorbar(metingen, w1_n, yerr=w1_s, fmt='.', label=r'$\omega_1$ metingen')
     plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
     plt.title(r'$\omega_1$ analyse')
-    plt.xlabel('meting')
+    plt.xlabel(r'$t_n$')
     plt.ylabel(r'$\omega_1$ (rad/s)')
-    plt.xlim(0, len(w1s))
+    plt.xlim(-0.5, len(w1s)-0.5)
+    plt.xticks(metingen)
     plt.tight_layout(rect=[0, 0, 0.95, 1])
     plt.show()
 
