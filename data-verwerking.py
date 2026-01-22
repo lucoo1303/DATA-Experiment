@@ -27,10 +27,12 @@ k = unc.ufloat((m_veer*g/u).n, (m_veer*g/u).s, 'veerconstante')
 
 # theoretische hoeksnelheid met onzekerheden
 w1_theorie = ((m*l*g + M*L*g/2)/I)**0.5
+periode = 2*math.pi / w1_theorie
 
 # tijdstippen waar ik de data wil evalueren 
-tn = np.arange(1, 6, 0.5)
-
+tn = np.arange(1, 6, 0.5) % periode.n
+tn = tn.round(3)
+print(periode, tn)  
 # Camera eigenschappen:
 fps = 240
 pixel_width = 512 # in pixels
