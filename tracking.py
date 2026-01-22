@@ -29,7 +29,7 @@ def plot_index_of_release(x_pos, index):
   plt.figure()
   plt.plot(x_pos,'k.')
   plt.title('onbewerkte x-positie (pixel)')
-  plt.vlines(x=index, ymin=0, ymax=500)
+  plt.vlines(x=index, ymin=-200, ymax=200)
   plt.show()
 
 # Schat ruwweg het moment waarop de slinger in de video wordt losgelaten
@@ -55,7 +55,6 @@ def get_index_of_release(x_pos):
         index_correct = True
     else:
         index = int(input('Geef de correcte index of release op: '))
-
   return index
 
 # functie om de header aan te maken voor het databestand
@@ -67,6 +66,7 @@ def create_header(video_name):
   header += 'Uncertainty in position: 1 pixel \n'
   header += 'Columns: \n'
   header += 'frame number                x (px)                       y (px)'
+  return header
 
 # Functie om de data om te zetten naar standaard cartesische coordinaten, met
 # de assen gecentreerd op de neutrale positie
@@ -317,7 +317,7 @@ def track_videos(video_indices, directory_video='Videos/', output_path='Data/out
   for i in video_indices:
     print(f'Nu tracken: vid{i}.MOV')
     track_video(i, directory_video, output_path)
-    print(f'laatst getrackte video: vid{i}.MOV')
+    print(f'Laatst getrackte video: vid{i}.MOV')
 
 
 # Onderstaande regels zetten de hoofddirectory gelijk aan de locatie van dit script
@@ -326,9 +326,9 @@ os.chdir(loc)
 
 # alle video's:
 vid_amount = 25
-#indices = np.arange(1,vid_amount + 1)
+indices = np.arange(1,vid_amount + 1)
 
 # specifieke video's:
-indices = [3]
+#indices = [3,5,8,9,10,11,12,15,24]
 
-track_videos(indices, output_path='Data/test.txt')
+track_videos(indices, output_path='Data/output.txt')
