@@ -228,11 +228,11 @@ def plot_all_w1s(w1s, best_guess, show_outliers=False, outliers=[], outlier_indi
     outliers_n = unp.nominal_values(outliers)
     outliers_s = unp.std_devs(outliers)
     plt.figure()
-    plt.hlines(ref.n, xmin = -1, xmax = len(w1s)+1, color='r', label=r'$\omega_1$')
+    plt.hlines(ref.n, xmin = -1, xmax = len(w1s)+1, color='r', label=r'$\omega_1$ (theorie)')
     plt.fill_between([-1, len(w1s)+1], ref.n - ref.s, ref.n + ref.s, color='r', alpha=0.2, label=r'$\omega_1 \pm \sigma$')
     plt.fill_between([-1, len(w1s)+1], ref.n + ref.s, ref.n + 2*ref.s, color='r', alpha=0.1, label=r'$\omega_1 \pm 2\sigma$')
     plt.fill_between([-1, len(w1s)+1], ref.n - ref.s, ref.n - 2*ref.s, color='r', alpha=0.1)
-    plt.hlines(best_guess.n, xmin = -1, xmax = len(w1s)+1, color='b', label=r'$\overline{\omega}_{1}$')
+    plt.hlines(best_guess.n, xmin = -1, xmax = len(w1s)+1, color='b', label=r'$\overline{\omega}_{1}$ (beste schatter)')
     plt.fill_between([-1, len(w1s)+1], best_guess.n - best_guess.s, best_guess.n + best_guess.s, color='b', alpha=0.2, label=r'$\overline{\omega}_{1} \pm \hat{\sigma}$')
     plt.fill_between([-1, len(w1s)+1], best_guess.n + best_guess.s, best_guess.n + 2*best_guess.s, color='b', alpha=0.1, label=r'$\overline{\omega}_{1} \pm 2\hat{\sigma}$')
     plt.fill_between([-1, len(w1s)+1], best_guess.n - best_guess.s, best_guess.n - 2*best_guess.s, color='b', alpha=0.1)
@@ -240,17 +240,21 @@ def plot_all_w1s(w1s, best_guess, show_outliers=False, outliers=[], outlier_indi
     if show_outliers:
         plt.errorbar(outlier_indices, outliers_n, yerr=outliers_s, fmt='.', color='orange', label='Uitschieters')
     plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
-    plt.title(r'$\omega_1$ analyse')
     plt.xlabel(r'$n$ (index $t_n$)')
     plt.ylabel(r'$\omega_1$ (rad/s)')
     plt.xlim(-0.5, len(w1s)-0.5)
     plt.xticks(metingen[metingen % 2 == 0])
-    plt.tight_layout(rect=[0, 0, 0.95, 1])
     if show_outliers:
+        plt.title(r'$\omega_1$ metingen met uitschieters')
+        plt.tight_layout(rect=[0, 0, 0.95, 1])
         plt.savefig('Plots/w1_all_measurements_with_outliers.png', dpi=300)
     elif not show_outliers and len(outliers) > 0:
+        plt.title(r'Correcte $\omega_1$ metingen')
+        plt.tight_layout(rect=[0, 0, 0.95, 1])
         plt.savefig('Plots/w1_correct_measurements.png', dpi=300)
     else:
+        plt.title(r'Alle $\omega_1$ metingen')
+        plt.tight_layout(rect=[0, 0, 0.95, 1])
         plt.savefig('Plots/w1_all_measurements.png', dpi=300)
     plt.show()
 
