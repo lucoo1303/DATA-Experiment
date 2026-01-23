@@ -43,7 +43,7 @@ pixel_scale = frame_width / pixel_width # m per pixel
 
 
 # tijdstippen waarop ik de data wil evalueren 
-tn = np.round(np.arange(1, 6, 0.5), 3)
+tn = np.round(np.arange(1, 8, 0.5), 3)
 #tn = unp.uarray(tn, frame_unc / 240)  # met een kleine onzekerheid van 1 ms
 
 
@@ -272,9 +272,9 @@ def check_outliers(w1s, w1_best_guess):
     w1s_corrected = w1s.copy()
     outliers = []
     outlier_indices = []
-    plot_all_w1s(w1s_corrected, w1_best_guess)
     corrected = False
     while not corrected:
+        plot_all_w1s(w1s_corrected, w1_best_guess, True, outliers, outlier_indices)
         outliers_input = input("Wat zijn de indices van de outliers, gescheiden door komma's (of druk op Enter als er geen zijn): ")
         if outliers_input.strip() != '':
             outlier_indices_input = [int(i) for i in outliers_input.split(',')]
@@ -353,8 +353,6 @@ strijdig = conflict_analysis(w1_best_guess, w1_theorie)
 red_chi2_w1 = red_chi2(w1s, w1_theorie)
 # Check of de beste schatter binnen 20% van de theoretische waarde ligt, zoals in de hypothese was verwacht
 binnen_20_procent = is_best_guess_within_percentage(w1_best_guess, 20)
-# Plot alle w1 schattingen met de beste schatter en de theoretische waarde
-plot_all_w1s(w1s, w1_best_guess)
 
 # Print de informatie naar de console voor de rapportage en het labjournaal
 print('--------------------------------------------------------')
@@ -365,3 +363,6 @@ print(f'Strijdig:                   {strijdig}')
 print(f'Red chi2:                   {red_chi2_w1}')
 print(f'Binnen 20% van theorie:     {binnen_20_procent}')
 print('--------------------------------------------------------')
+
+# Plot alle w1 schattingen met de beste schatter en de theoretische waarde
+plot_all_w1s(w1s, w1_best_guess)
