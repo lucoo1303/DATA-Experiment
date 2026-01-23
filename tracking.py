@@ -227,7 +227,7 @@ def track_video(vid_num, directory_video, output_path):
   plt.figure('Calibratie')
   plt.imshow(np.flip(frame,axis=2))
   #plt.savefig('frame1.pdf')
-  plt.savefig(f'frame1_{video_name}.png',dpi=300)
+  plt.savefig(f'Fotos/frame1_{video_name}.png',dpi=300)
 
   # Selectie van object
 
