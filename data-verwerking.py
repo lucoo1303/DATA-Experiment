@@ -267,7 +267,7 @@ def get_best_weighted_guess(data):
     w1 = unc.ufloat(weighted_avg, weighted_std)
     return w1
 
-# functie om uitschieters binnen de w1 schattingen te checken en eventueel verwijderen uit de dataset
+# functie om uitschieters binnen de w1 schattingen te vinden en eventueel verwijderen uit de dataset
 def check_outliers(w1s, w1_best_guess):
     w1s_corrected = w1s.copy()
     outliers = []
@@ -276,23 +276,24 @@ def check_outliers(w1s, w1_best_guess):
     while not corrected:
         plot_all_w1s(w1s_corrected, w1_best_guess, True if len(outliers) > 0 else False, outliers, outlier_indices)
         outliers_input = input("Wat zijn de indices van de uitschieters, gescheiden door komma's (of druk op Enter als er geen zijn): ")
-        if outliers_input.strip() != '':
+        if outliers_input != '':
             outlier_indices_input = [int(i) for i in outliers_input.split(',')]
             for i in outlier_indices_input:
                 outlier_indices.append(i)
-            for i in outlier_indices_input:
                 outliers.append(w1s_corrected[i])
-            for i in outlier_indices:
                 w1s_corrected[i] = None
+            # herbereken de beste schatter zonder de uitschieters
             w1_best_guess = get_best_weighted_guess(np.array([w1 for w1 in w1s_corrected if w1 is not None]))
 
-        plot_all_w1s(w1s_corrected, w1_best_guess, True if len(outliers) > 0 else False, outliers, outlier_indices)
-        correct_input = input("Is data nu correct? (y/n): ")
-        if correct_input.lower() == 'y':
+            # check of de data nu klopt
+            plot_all_w1s(w1s_corrected, w1_best_guess, True if len(outliers) > 0 else False, outliers, outlier_indices)
+            is_correct_input = input("Is data nu correct? (y/n): ")
+            if is_correct_input == 'y':
+                corrected = True
+        else:
             corrected = True
 
     return w1s_corrected, w1_best_guess, (outliers, outlier_indices)
-
 
 
 # algemene functie die een korte strijdigheidsanalyse uitvoert op basis van het 2 sigma criterium
@@ -303,12 +304,12 @@ def conflict_analysis(best_guess, ref):
     return conflict
 
 # algemene functie die de gereduceerde chi2 berekent van data ten opzichte van een referentiewaarde
-def red_chi2(data, ref):
+def red_chi2(data, ref, degrees_of_freedom=0):
     data = np.array([d for d in data if d is not None])
     noms = unp.nominal_values(data)
     stds = unp.std_devs(data)
     chi2 = np.sum(((noms - ref.n)**2) / (stds**2 + ref.s**2))
-    red_chi2 = chi2 / (len(data) - 1)
+    red_chi2 = chi2 / (len(data) - degrees_of_freedom)
     return red_chi2
 
 # algemene functie die checkt of een beste schatter binnen een bepaald percentage van een referentie ligt
@@ -345,7 +346,7 @@ fit_params = plot_and_fit_theta_vs_theta0(data_per_video)
 w1s = collect_w1s(fit_params)
 # De beste schatter voor w1 op basis van gewogen gemiddelde
 w1_best_guess = get_best_weighted_guess(w1s)
-# Check voor outliers in de w1 schattingen
+# Check voor uitschieters in de w1 schattingen
 w1s, w1_best_guess, outliers = check_outliers(w1s, w1_best_guess)
 # Check of de beste schatter strijdig is met de theoretische waarde
 strijdig = conflict_analysis(w1_best_guess, w1_theorie)
@@ -356,13 +357,17 @@ binnen_20_procent = is_best_guess_within_percentage(w1_best_guess, 20)
 
 # Print de informatie naar de console voor de rapportage en het labjournaal
 print('--------------------------------------------------------')
-print('Resultaten van de w1 meting en analyse:')
+print('Resultaten van de w1 metingen:')
+print(f'w1 metingen:                {[f"{w1:.2u}" if w1 is not None else "uitschieter" for w1 in w1s]}')
+print(f'Uitschieters:               {[f"{w1:.2u}" for w1 in outliers[0]]} op metingen {outliers[1]}')
+print('--------------------------------------------------------')
+print('Resultaten van de w1 analyse:')
 print(f'w1 theorie:                 {w1_theorie}')
-print(f'w1 gemeten:                 {w1_best_guess}')
+print(f'w1 beste schatter:          {w1_best_guess}')
 print(f'Strijdig:                   {strijdig}')
 print(f'Red chi2:                   {red_chi2_w1}')
 print(f'Binnen 20% van theorie:     {binnen_20_procent}')
 print('--------------------------------------------------------')
 
-# Plot alle w1 schattingen met de beste schatter en de theoretische waarde
+# Plot alle w1 schattingen met de beste schatter en de theoretische waarde, zonder uitschieters
 plot_all_w1s(w1s, w1_best_guess)
