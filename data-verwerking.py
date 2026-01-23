@@ -249,7 +249,7 @@ def plot_all_w1s(w1s, best_guess, show_outliers=False, outliers=[], outlier_indi
         plt.tight_layout(rect=[0, 0, 0.95, 1])
         plt.savefig('Plots/w1_all_measurements_with_outliers.png', dpi=300)
     elif not show_outliers and len(outliers) > 0:
-        plt.title(r'Correcte $\omega_1$ metingen')
+        plt.title(r'Definitieve $\omega_1$ metingen')
         plt.tight_layout(rect=[0, 0, 0.95, 1])
         plt.savefig('Plots/w1_correct_measurements.png', dpi=300)
     else:
