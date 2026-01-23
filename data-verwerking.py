@@ -266,28 +266,23 @@ def get_best_weighted_guess(data):
     w1 = unc.ufloat(weighted_avg, weighted_std)
     return w1
 
-# functie om uitschieters binnen de w1 schattingen te vinden en te verwijderen uit de dataset
+# functie om uitschieters binnen de w1 schattingen te vinden en te verwijderen uit de dataset op basis van de MAD methode
 def identify_outliers(w1s, w1_best_guess):
     w1s_corrected = w1s.copy()
     outliers = []
     outlier_indices = []
+    median_nom = np.median(unp.nominal_values(w1s))
+    mad = np.median(np.abs(unp.nominal_values(w1s) - median_nom))
+    factor = 4 # factor waarmee de MAD vermenigvuldigd wordt om de drempel te bepalen
     plot_all_w1s(w1s_corrected, w1_best_guess)
-    outlier_threshold = 3
-    red_chi2s = []
-    for w1 in w1s:
-        red_chi2s.append(calc_red_chi2([w1], w1_best_guess))
-    red_chi2s = np.array(red_chi2s)
-    median_red_chi2 = np.median(red_chi2s)
-    for i, red_chi2 in enumerate(red_chi2s):
-        # Uitschieter als red_chi2 aanzienlijk groter is dan de mediaan
-        if red_chi2 > outlier_threshold * median_red_chi2:
-            outliers.append(w1s[i])
+    for i, w1 in enumerate(w1s):
+        if abs(unp.nominal_values(w1) - median_nom) > factor * mad:
+            outliers.append(w1)
             outlier_indices.append(i)
             w1s_corrected[i] = None
-    plot_all_w1s(w1s_corrected, w1_best_guess, True if len(outliers) > 0 else False, outliers, outlier_indices)
     w1_best_guess = get_best_weighted_guess([w1 for w1 in w1s_corrected if w1 is not None])
+    plot_all_w1s(w1s_corrected, w1_best_guess, True if len(outliers) > 0 else False, outliers, outlier_indices)
     return w1s_corrected, w1_best_guess, (outliers, outlier_indices)
-
 
 # algemene functie die een korte strijdigheidsanalyse uitvoert op basis van het 2 sigma criterium
 def conflict_analysis(best_guess, ref):
