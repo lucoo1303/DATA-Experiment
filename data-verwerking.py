@@ -1,6 +1,7 @@
 import scipy.odr as odr
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import uncertainties as unc
 from uncertainties import unumpy as unp
 import math
@@ -44,7 +45,8 @@ pixel_scale = frame_width / pixel_width # m per pixel
 
 # tijdstippen waarop ik de data wil evalueren 
 tn = np.round(np.arange(1, 8, 0.35), 3)
-
+# geef elke tn een unieke kleur voor in de plot
+colors = cm.tab20.colors 
 
 # ============================================
 # Functies voor data verkrijgen en omzetten
@@ -146,7 +148,7 @@ def plot_and_fit_theta_vs_theta0(data):
 # functie om plot van theta(tn) vs theta0 te maken voor alle t in tn
 def plot_theta_vs_theta0(data):
     fig = plt.figure(figsize=(10, 5))
-
+    
     for n, t in enumerate(tn):
         data_at_t = get_theta_vs_theta0(data, t)
         theta_0 = data_at_t[:,0]
@@ -155,7 +157,7 @@ def plot_theta_vs_theta0(data):
         y_n = unp.nominal_values(theta_t)
         x_s = unp.std_devs(theta_0)
         y_s = unp.std_devs(theta_t)
-        plt.errorbar(x_n, y_n, xerr=x_s, yerr=y_s, fmt='.', label=fr'$t_{{{n}}}={tn[n]}$')
+        plt.errorbar(x_n, y_n, xerr=x_s, yerr=y_s, fmt='.', label=fr'$t_{{{n}}}={tn[n]}$', color=colors[n])
 
     plt.xlabel(r'beginhoek $\theta_0$ (rad)')
     plt.ylabel(r'hoek $\theta(t_n)$ (rad)')
@@ -212,8 +214,8 @@ def execute_fit(ax, x, y, n):
     chi2red = odr_res.res_var
 
     xplot = np.linspace(np.min(x_n),np.max(x_n),num=100)
-    line, = ax.plot(xplot,f(par_best,xplot),'-',label=fr'$t_{{{n}}}={tn[n]}$')
-    ax.errorbar(x_n,y_n,xerr=x_s,yerr=y_s,fmt='.',color=line.get_color())
+    ax.plot(xplot,f(par_best,xplot),'-',label=fr'$t_{{{n}}}={tn[n]}$', color=colors[n])
+    ax.errorbar(x_n,y_n,xerr=x_s,yerr=y_s,fmt='.',color=colors[n])
 
     return np.array([par_best, par_sig_ext, par_cov, chi2, chi2red], dtype=object)
 
