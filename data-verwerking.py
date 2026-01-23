@@ -43,8 +43,7 @@ pixel_scale = frame_width / pixel_width # m per pixel
 
 
 # tijdstippen waarop ik de data wil evalueren 
-tn = np.round(np.arange(1, 8, 0.5), 3)
-#tn = unp.uarray(tn, frame_unc / 240)  # met een kleine onzekerheid van 1 ms
+tn = np.round(np.arange(1, 8, 0.35), 3)
 
 
 # ============================================
@@ -242,7 +241,7 @@ def plot_all_w1s(w1s, best_guess, show_outliers=False, outliers=[], outlier_indi
     plt.xlabel(r'$n$ (index $t_n$)')
     plt.ylabel(r'$\omega_1$ (rad/s)')
     plt.xlim(-0.5, len(w1s)-0.5)
-    plt.xticks(metingen)
+    plt.xticks(metingen[metingen % 2 == 0])
     plt.tight_layout(rect=[0, 0, 0.95, 1])
     plt.show()
 
@@ -267,32 +266,26 @@ def get_best_weighted_guess(data):
     w1 = unc.ufloat(weighted_avg, weighted_std)
     return w1
 
-# functie om uitschieters binnen de w1 schattingen te vinden en eventueel verwijderen uit de dataset
-def check_outliers(w1s, w1_best_guess):
+# functie om uitschieters binnen de w1 schattingen te vinden en te verwijderen uit de dataset
+def identify_outliers(w1s, w1_best_guess):
     w1s_corrected = w1s.copy()
     outliers = []
     outlier_indices = []
-    corrected = False
-    while not corrected:
-        plot_all_w1s(w1s_corrected, w1_best_guess, True if len(outliers) > 0 else False, outliers, outlier_indices)
-        outliers_input = input("Wat zijn de indices van de uitschieters, gescheiden door komma's (of druk op Enter als er geen zijn): ")
-        if outliers_input != '':
-            outlier_indices_input = [int(i) for i in outliers_input.split(',')]
-            for i in outlier_indices_input:
-                outlier_indices.append(i)
-                outliers.append(w1s_corrected[i])
-                w1s_corrected[i] = None
-            # herbereken de beste schatter zonder de uitschieters
-            w1_best_guess = get_best_weighted_guess(np.array([w1 for w1 in w1s_corrected if w1 is not None]))
-
-            # check of de data nu klopt
-            plot_all_w1s(w1s_corrected, w1_best_guess, True if len(outliers) > 0 else False, outliers, outlier_indices)
-            is_correct_input = input("Is data nu correct? (y/n): ")
-            if is_correct_input == 'y':
-                corrected = True
-        else:
-            corrected = True
-
+    plot_all_w1s(w1s_corrected, w1_best_guess)
+    outlier_threshold = 3
+    red_chi2s = []
+    for w1 in w1s:
+        red_chi2s.append(calc_red_chi2([w1], w1_best_guess))
+    red_chi2s = np.array(red_chi2s)
+    median_red_chi2 = np.median(red_chi2s)
+    for i, red_chi2 in enumerate(red_chi2s):
+        # Uitschieter als red_chi2 aanzienlijk groter is dan de mediaan
+        if red_chi2 > outlier_threshold * median_red_chi2:
+            outliers.append(w1s[i])
+            outlier_indices.append(i)
+            w1s_corrected[i] = None
+    plot_all_w1s(w1s_corrected, w1_best_guess, True if len(outliers) > 0 else False, outliers, outlier_indices)
+    w1_best_guess = get_best_weighted_guess([w1 for w1 in w1s_corrected if w1 is not None])
     return w1s_corrected, w1_best_guess, (outliers, outlier_indices)
 
 
@@ -304,7 +297,7 @@ def conflict_analysis(best_guess, ref):
     return conflict
 
 # algemene functie die de gereduceerde chi2 berekent van data ten opzichte van een referentiewaarde
-def red_chi2(data, ref, degrees_of_freedom=0):
+def calc_red_chi2(data, ref, degrees_of_freedom=0):
     data = np.array([d for d in data if d is not None])
     noms = unp.nominal_values(data)
     stds = unp.std_devs(data)
@@ -312,8 +305,8 @@ def red_chi2(data, ref, degrees_of_freedom=0):
     red_chi2 = chi2 / (len(data) - degrees_of_freedom)
     return red_chi2
 
-# algemene functie die checkt of een beste schatter binnen een bepaald percentage van een referentie ligt
-def is_best_guess_within_percentage(best_guess, percentage, ref=w1_theorie):
+# algemene functie die checkt of een beste waarde binnen een bepaald percentage van een referentie ligt
+def is_val_within_percentage_of_ref(best_guess, percentage, ref=w1_theorie):
     max = ref.n * (1 + percentage/100)
     min = ref.n * (1 - percentage/100)
     return (best_guess.n <= max) and (best_guess.n >= min)
@@ -347,19 +340,19 @@ w1s = collect_w1s(fit_params)
 # De beste schatter voor w1 op basis van gewogen gemiddelde
 w1_best_guess = get_best_weighted_guess(w1s)
 # Check voor uitschieters in de w1 schattingen
-w1s, w1_best_guess, outliers = check_outliers(w1s, w1_best_guess)
+w1s, w1_best_guess, outliers = identify_outliers(w1s, w1_best_guess)
 # Check of de beste schatter strijdig is met de theoretische waarde
 strijdig = conflict_analysis(w1_best_guess, w1_theorie)
 # Bereken de gereduceerde chi2 van de w1 metingen ten opzichte van de theoretische waarde
-red_chi2_w1 = red_chi2(w1s, w1_theorie)
+red_chi2_w1 = calc_red_chi2(w1s, w1_theorie)
 # Check of de beste schatter binnen 20% van de theoretische waarde ligt, zoals in de hypothese was verwacht
-binnen_20_procent = is_best_guess_within_percentage(w1_best_guess, 20)
+binnen_20_procent = is_val_within_percentage_of_ref(w1_best_guess, 20)
 
 # Print de informatie naar de console voor de rapportage en het labjournaal
 print('--------------------------------------------------------')
 print('Resultaten van de w1 metingen:')
 print(f'w1 metingen:                {[f"{w1:.2u}" if w1 is not None else "uitschieter" for w1 in w1s]}')
-print(f'Uitschieters:               {[f"{w1:.2u}" for w1 in outliers[0]]} op metingen {outliers[1]}')
+print(f'Uitschieters:               {[f"{w1:.2u}" for w1 in outliers[0]]} op n uit t_n is: {outliers[1]}')
 print('--------------------------------------------------------')
 print('Resultaten van de w1 analyse:')
 print(f'w1 theorie:                 {w1_theorie}')
