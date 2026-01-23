@@ -317,6 +317,31 @@ def is_val_within_percentage_of_ref(best_guess, percentage, ref=w1_theorie):
 
 
 # ============================================
+# Extra theorie vs experiment vergelijking
+# ============================================
+
+
+def theta_model(t, theta0, w1):
+    return theta0 * unp.cos(w1*t)
+
+def plot_theory_vs_experiment(w1_theory, w1_exp, theta0):
+    times = np.linspace(0, 8, 1000)
+    theta_theory = theta_model(times, theta0, w1_theory)
+    theta_exp = theta_model(times, theta0, w1_exp)
+
+    plt.figure(figsize=(10,5))
+    plt.plot(times, unp.nominal_values(theta_theory), label=r'Tijdsverloop met theoretische $\omega_1$')
+    plt.plot(times, unp.nominal_values(theta_exp), label=r'Tijdsverloop met experimentele $\omega_1$')
+    plt.xlabel('Tijd (s)')
+    plt.ylabel('Hoek (rad)')
+    plt.title('Theoretische en Experimentele Hoek over Tijd')
+    plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
+    plt.tight_layout(rect=[0, 0, 0.95, 1])
+    plt.savefig('Plots/theory_vs_experiment.png', dpi=300)
+    plt.show()
+
+
+# ============================================
 # Hoofdscript
 # ============================================
 
@@ -368,3 +393,6 @@ print('--------------------------------------------------------')
 
 # Plot alle w1 schattingen met de beste schatter en de theoretische waarde, zonder uitschieters
 plot_all_w1s(w1s, w1_best_guess, show_outliers=False, outliers=outliers[0], outlier_indices=outliers[1])
+
+# Extra plot van theorie vs experiment voor een specifieke beginhoek
+plot_theory_vs_experiment(w1_theorie, w1_best_guess, unc.ufloat(0.2, 0.01))
