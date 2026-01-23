@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import uncertainties as unc
 from uncertainties import unumpy as unp
-import math
 import os
 import warnings
 
