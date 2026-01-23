@@ -236,7 +236,7 @@ def plot_all_w1s(w1s, best_guess, show_outliers=False, outliers=[], outlier_indi
     plt.fill_between([-1, len(w1s)+1], best_guess.n - best_guess.s, best_guess.n - 2*best_guess.s, color='b', alpha=0.1)
     plt.errorbar(metingen, w1_n, yerr=w1_s, fmt='.', label=r'$\omega_1$ metingen')
     if show_outliers:
-        plt.errorbar(outlier_indices, outliers_n, yerr=outliers_s, fmt='.', color='orange', label='Outliers')
+        plt.errorbar(outlier_indices, outliers_n, yerr=outliers_s, fmt='.', color='orange', label='Uitschieters')
     plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
     plt.title(r'$\omega_1$ analyse')
     plt.xlabel(r'$n$ (index $t_n$)')
@@ -267,15 +267,15 @@ def get_best_weighted_guess(data):
     w1 = unc.ufloat(weighted_avg, weighted_std)
     return w1
 
-# functie om outliers in de w1 schattingen te checken en verwijderen uit de dataset
+# functie om uitschieters binnen de w1 schattingen te checken en eventueel verwijderen uit de dataset
 def check_outliers(w1s, w1_best_guess):
     w1s_corrected = w1s.copy()
     outliers = []
     outlier_indices = []
     corrected = False
     while not corrected:
-        plot_all_w1s(w1s_corrected, w1_best_guess, True, outliers, outlier_indices)
-        outliers_input = input("Wat zijn de indices van de outliers, gescheiden door komma's (of druk op Enter als er geen zijn): ")
+        plot_all_w1s(w1s_corrected, w1_best_guess, True if len(outliers) > 0 else False, outliers, outlier_indices)
+        outliers_input = input("Wat zijn de indices van de uitschieters, gescheiden door komma's (of druk op Enter als er geen zijn): ")
         if outliers_input.strip() != '':
             outlier_indices_input = [int(i) for i in outliers_input.split(',')]
             for i in outlier_indices_input:
@@ -286,7 +286,7 @@ def check_outliers(w1s, w1_best_guess):
                 w1s_corrected[i] = None
             w1_best_guess = get_best_weighted_guess(np.array([w1 for w1 in w1s_corrected if w1 is not None]))
 
-        plot_all_w1s(w1s_corrected, w1_best_guess, True, outliers, outlier_indices)
+        plot_all_w1s(w1s_corrected, w1_best_guess, True if len(outliers) > 0 else False, outliers, outlier_indices)
         correct_input = input("Is data nu correct? (y/n): ")
         if correct_input.lower() == 'y':
             corrected = True
