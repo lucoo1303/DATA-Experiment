@@ -163,6 +163,7 @@ def plot_theta_vs_theta0(data):
     plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
     plt.title(r'$\theta(t_n)$ (hoek op tijdstip $t_n$) tegen $\theta_0$ (beginhoek)')
     fig.tight_layout(rect=[0, 0, 0.95, 1])
+    plt.savefig('Plots/theta_vs_theta0_all_tn.png', dpi=300)
     plt.show()
 
 # functie om fit van theta(tn) vs theta0 uit te voeren voor alle t in tn
@@ -183,6 +184,7 @@ def fit_theta_vs_theta0(data):
     ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
     ax.set_title(r'$\theta(t_n)$ (hoek op tijdstip $t_n$) tegen $\theta_0$ (beginhoek)')
     fig.tight_layout(rect=[0, 0, 0.95, 1])
+    plt.savefig('Plots/theta_vs_theta0_all_tn_fit.png', dpi=300)
     plt.show()
     return np.array(fit_params)
 
@@ -244,6 +246,12 @@ def plot_all_w1s(w1s, best_guess, show_outliers=False, outliers=[], outlier_indi
     plt.xlim(-0.5, len(w1s)-0.5)
     plt.xticks(metingen[metingen % 2 == 0])
     plt.tight_layout(rect=[0, 0, 0.95, 1])
+    if show_outliers:
+        plt.savefig('Plots/w1_all_measurements_with_outliers.png', dpi=300)
+    elif not show_outliers and len(outliers) > 0:
+        plt.savefig('Plots/w1_correct_measurements.png', dpi=300)
+    else:
+        plt.savefig('Plots/w1_all_measurements.png', dpi=300)
     plt.show()
 
 
@@ -359,4 +367,4 @@ print(f'Binnen 20% van theorie:     {binnen_20_procent}')
 print('--------------------------------------------------------')
 
 # Plot alle w1 schattingen met de beste schatter en de theoretische waarde, zonder uitschieters
-plot_all_w1s(w1s, w1_best_guess)
+plot_all_w1s(w1s, w1_best_guess, show_outliers=False, outliers=outliers[0], outlier_indices=outliers[1])
