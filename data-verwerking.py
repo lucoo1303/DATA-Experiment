@@ -267,7 +267,7 @@ def plot_all_w1s(w1s, best_guess, show_outliers=False, outliers=[], outlier_indi
 def collect_w1s(fit_params):
     w1_noms = fit_params[:,0]
     w1_stds = fit_params[:,1]
-    return unp.uarray(w1_noms, w1_stds)
+    return unp.uarray(np.abs(w1_noms), w1_stds)
 
 # algemene functie om de gewogen beste schatter voor een dataset te krijgen
 def get_best_weighted_guess(data):
